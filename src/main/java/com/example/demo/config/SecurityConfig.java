@@ -1,80 +1,70 @@
 package com.example.demo.config;
 
-import com.example.demo.filter.JwtAuthFilter;
-import com.example.demo.service.UserService;
+
+import com.example.demo.helper.CustomOAuth2SuccessHandler;
+import com.example.demo.service.WriterService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // Import HttpMethod
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
-    private final UserService userService;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserService userService) {
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.userService = userService;
+    // Constructor injection for CustomOAuth2SuccessHandler
+    public SecurityConfig(CustomOAuth2SuccessHandler customOAuth2SuccessHandler) {
+        this.customOAuth2SuccessHandler = customOAuth2SuccessHandler;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+        return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authorize -> authorize
-                        // Allow registration and login publicly
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-
-                        // Allow GET requests to /api/data/** without authentication (public GET access)
-                        .requestMatchers(HttpMethod.GET, "/api/data/**").permitAll()
-
-                        // For all other methods (POST, PUT, DELETE) on /api/data/**, require authentication
-                        // This means if a JWT is present and valid, POST will be allowed.
-                        // If no JWT or invalid JWT, it will be denied by the authentication requirement.
-                        .requestMatchers("/api/data/**").authenticated()
-
-                        // Any other requests require authentication by default
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(registry->{
+                    registry.requestMatchers("/register/**","/quotes","/loginWithGoogle","/login").permitAll();
+                    registry.requestMatchers("/admin/**").hasRole("ADMIN");
+                    registry.requestMatchers("/user/**").hasRole("USER");
+                    registry.anyRequest().authenticated();
+                }).formLogin(formLogin ->
+                        formLogin
+                                .loginPage("/login")
+                                .permitAll()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .oauth2Login(oauth2Login ->
+                        oauth2Login
+                                .loginPage("/login")
+                                .successHandler(customOAuth2SuccessHandler)
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public AuthenticationProvider authenticationProvider(WriterService writerService, PasswordEncoder passwordEncoder){
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(writerService);
+        return provider;
+    }
+
+
+    @Bean
+    public HiddenHttpMethodFilter hiddenHttpMethodFilter(){
+        return new HiddenHttpMethodFilter();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 }
