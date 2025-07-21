@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .register-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 28rem;
+            text-align: center;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .button-primary {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+        }
+        .button-primary:hover {
+            background-color: #4338ca;
+        }
+    </style>
+</head>
+<body>
+<div class="register-container">
+    <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Create an Account</h2>
+
+    <form th:action="@{/register}" method="post" th:object="${writer}">
+        <input type="text" name="username" placeholder="Username" class="input-field"
+               th:field="*{username}" />
+        <p th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-red-500 text-sm"></p>
+
+        <input type="password" name="password" placeholder="Password" class="input-field"
+               th:field="*{password}" />
+        <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-red-500 text-sm"></p>
+
+        <button type="submit" class="button-primary">Register</button>
+    </form>
+
+
+    <div class="mt-4">
+        <a th:href="@{/Log}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            Already have an account? Log in
+        </a>
+    </div>
+</div>
+</body>
+</html>

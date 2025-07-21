@@ -2,9 +2,11 @@ package com.example.demo.config;
 
 
 import com.example.demo.helper.CustomAuthenticationFailureHandler;
+import com.example.demo.helper.CustomBasicAuthSuccessHandler;
 import com.example.demo.helper.CustomOAuth2SuccessHandler;
 import com.example.demo.service.WriterService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,16 +23,12 @@ import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
-
-    // Constructor injection for CustomOAuth2SuccessHandler
-    public SecurityConfig(CustomOAuth2SuccessHandler customOAuth2SuccessHandler, CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
-        this.customOAuth2SuccessHandler = customOAuth2SuccessHandler;
-        this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
-    }
+    private final CustomBasicAuthSuccessHandler customBasicAuthSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
@@ -47,9 +45,11 @@ public class SecurityConfig {
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
                     registry.anyRequest().authenticated();
-                })
-
-                .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
+                }).formLogin(form -> form
+                        .loginPage("/Log")
+                        .successHandler(customBasicAuthSuccessHandler)
+                        .permitAll()
+                )
                 .oauth2Login(oauth2 -> oauth2.successHandler(customOAuth2SuccessHandler).failureHandler(customAuthenticationFailureHandler))
                 .build();
     }
@@ -61,10 +61,6 @@ public class SecurityConfig {
         provider.setUserDetailsService(writerService);
         return provider;
     }
-
-
-
-
 
     @Bean
     public HiddenHttpMethodFilter hiddenHttpMethodFilter(){

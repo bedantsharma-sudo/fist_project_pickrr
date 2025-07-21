@@ -32,6 +32,7 @@ class QuoteController {
 
 
     @GetMapping("/quotes")
+    @RateLimit(limit = 30,duration = 60)
     public String getAllQuote(Model model, @RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "10") int size,
                                     @RequestParam(defaultValue = "id") String sortBy, // New: for sorting
@@ -59,7 +60,7 @@ class QuoteController {
     }
 
     @GetMapping("/user/quotes/{id}")
-    @RateLimit(limit = 3,duration = 60)
+    @RateLimit(limit = 20,duration = 60)
     public String showSingleQuote(@PathVariable Long id, Model model) {
         Optional<Quote> quoteOptional = quoteService.getQuoteById(id);
         if (quoteOptional.isPresent()) {
@@ -70,6 +71,7 @@ class QuoteController {
         }
     }
 
+    @RateLimit(limit = 5,duration = 60)
     @PostMapping("/user/quotes")
     public String makeQuote(@ModelAttribute Quote quote){
 
@@ -84,12 +86,14 @@ class QuoteController {
         return "redirect:/user/quotes/" + newQuote.getId();
     }
 
+    @RateLimit(limit = 10,duration = 60)
     @PutMapping("/user/quotes/{id}")
     public String updateQuote(@PathVariable long id, @ModelAttribute Quote quote){
         Quote updatedQuote = quoteService.updateQuote(id, quote);
         return "redirect:/user/quotes/" + updatedQuote.getId();
     }
 
+    @RateLimit(limit = 3,duration = 60)
     @DeleteMapping("/user/quotes/{id}")
     public String deleteQuote(@PathVariable long id){
         quoteService.deleteQuote(id);
