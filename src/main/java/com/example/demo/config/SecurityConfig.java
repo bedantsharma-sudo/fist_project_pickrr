@@ -1,8 +1,10 @@
 package com.example.demo.config;
 
 
+import com.example.demo.helper.CustomAuthenticationFailureHandler;
 import com.example.demo.helper.CustomOAuth2SuccessHandler;
 import com.example.demo.service.WriterService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -21,31 +23,32 @@ import org.springframework.web.filter.HiddenHttpMethodFilter;
 public class SecurityConfig {
 
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
 
     // Constructor injection for CustomOAuth2SuccessHandler
-    public SecurityConfig(CustomOAuth2SuccessHandler customOAuth2SuccessHandler) {
+    public SecurityConfig(CustomOAuth2SuccessHandler customOAuth2SuccessHandler, CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
         this.customOAuth2SuccessHandler = customOAuth2SuccessHandler;
+        this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(registry->{
-                    registry.requestMatchers("/register/**","/quotes","/loginWithGoogle","/login").permitAll();
+                .authorizeHttpRequests(registry -> {
+                    registry.requestMatchers(
+                            "/register/**",
+                            "/quotes",
+                            "/loginWithGoogle",
+                            "/welcome"
+                    ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
                     registry.anyRequest().authenticated();
-                }).formLogin(formLogin ->
-                        formLogin
-                                .loginPage("/login")
-                                .permitAll()
-                )
-                .oauth2Login(oauth2Login ->
-                        oauth2Login
-                                .loginPage("/login")
-                                .successHandler(customOAuth2SuccessHandler)
-                )
+                })
+
+                .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
+                .oauth2Login(oauth2 -> oauth2.successHandler(customOAuth2SuccessHandler).failureHandler(customAuthenticationFailureHandler))
                 .build();
     }
 
