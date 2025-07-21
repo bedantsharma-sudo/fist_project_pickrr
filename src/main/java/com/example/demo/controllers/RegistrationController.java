@@ -14,7 +14,7 @@ public class RegistrationController {
 
     @PostMapping
     public Writer registerUser(@RequestBody Writer writer){
-
+    return  writer;
     }
 
 }
