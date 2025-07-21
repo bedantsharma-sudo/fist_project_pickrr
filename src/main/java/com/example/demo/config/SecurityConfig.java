@@ -4,6 +4,7 @@ package com.example.demo.config;
 import com.example.demo.helper.CustomAuthenticationFailureHandler;
 import com.example.demo.helper.CustomOAuth2SuccessHandler;
 import com.example.demo.service.WriterService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +41,8 @@ public class SecurityConfig {
                             "/register/**",
                             "/quotes",
                             "/loginWithGoogle",
-                            "/welcome"
+                            "/welcome",
+                            "/test"
                     ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
@@ -59,6 +61,9 @@ public class SecurityConfig {
         provider.setUserDetailsService(writerService);
         return provider;
     }
+
+
+
 
 
     @Bean

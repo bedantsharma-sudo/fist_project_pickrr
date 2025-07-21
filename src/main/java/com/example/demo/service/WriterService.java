@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.model.Writer;
 import com.example.demo.repository.WriterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,6 +18,7 @@ public class WriterService implements UserDetailsService {
     private WriterRepository writerRepository;
 
     @Override
+    @Cacheable(value = "users", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Writer> writer = writerRepository.findByUsername(username);
         if(writer.isPresent()){
