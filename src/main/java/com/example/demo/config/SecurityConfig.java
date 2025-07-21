@@ -32,7 +32,7 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry->{
-                    registry.requestMatchers("/register/**","/quotes","/loginWithGoogle").permitAll();
+                    registry.requestMatchers("/register/**","/quotes","/loginWithGoogle","/login").permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
                     registry.anyRequest().authenticated();

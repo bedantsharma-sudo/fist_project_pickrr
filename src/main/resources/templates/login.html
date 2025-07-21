@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Tailwind CSS CDN for quick styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            width: 100%;
+            max-width: 28rem; /* max-w-md */
+            text-align: center;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            box-sizing: border-box; /* Ensures padding doesn't increase width */
+        }
+        .button-primary {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 600; /* font-semibold */
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-primary:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+        .button-google {
+            background-color: #db4437; /* Google red */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background-color 0.3s ease;
+            text-decoration: none; /* Remove underline for links */
+        }
+        .button-google:hover {
+            background-color: #c23321;
+        }
+        .google-icon {
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+        }
+        .error-message {
+            color: #ef4444; /* red-500 */
+            background-color: #fee2e2; /* red-100 */
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #fca5a5; /* red-300 */
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Login to Your Account</h2>
+
+    <!-- Display error message if present (e.g., from failed login) -->
+    <div th:if="${param.error}" class="error-message">
+        Invalid username or password.
+    </div>
+    <!-- Display logout message if present -->
+    <div th:if="${param.logout}" class="error-message" style="background-color: #d1fae5; color: #065f46; border-color: #a7f3d0;">
+        You have been logged out.
+    </div>
+
+    <!-- Basic Authentication Form -->
+    <form th:action="@{/login}" method="post" class="mb-6">
+        <input type="text" id="username" name="username" placeholder="Username" class="input-field" required>
+        <input type="password" id="password" name="password" placeholder="Password" class="input-field" required>
+        <button type="submit" class="button-primary">Log In</button>
+    </form>
+
+    <div class="relative flex py-5 items-center">
+        <div class="flex-grow border-t border-gray-300"></div>
+        <span class="flex-shrink mx-4 text-gray-500">OR</span>
+        <div class="flex-grow border-t border-gray-300"></div>
+    </div>
+
+    <!-- Google OAuth2 Login Button -->
+    <a th:href="@{/oauth2/authorization/google}" class="button-google">
+        <svg class="google-icon" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.63-6.63C34.6 2.41 29.67 0 24 0 14.62 0 6.51 5.38 2.56 13.06l7.86 6.1C13.4 12.32 18.25 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.5c0-.98-.08-1.78-.17-2.6H24v5.18h12.59c-.58 2.96-2.22 5.37-4.66 6.95l6.77 5.25c4.7-4.36 7.4-10.74 7.4-18.78z"/>
+            <path fill="#FBBC05" d="M9.82 29.5c-1.01-.73-1.89-1.7-2.53-2.8l-7.86 6.1C5.38 42.12 14.62 48 24 48c7.68 0 14.07-2.23 18.78-6.09l-6.77-5.25c-2.44 1.58-4.08 3.99-4.66 6.95H24v-5.18z"/>
+            <path fill="#34A853" d="M24 48c-6.6 0-12.24-2.92-16.29-7.62l6.77-5.25c2.44 1.58 4.08 3.99 4.66 6.95H24v5.18z"/>
+        </svg>
+        Sign in with Google
+    </a>
+</div>
+</body>
+</html>
