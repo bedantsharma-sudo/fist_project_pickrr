@@ -18,12 +18,12 @@ class QuoteController {
         this.quoteService = quoteService;
     }
 
-    @GetMapping("/quotes")
+    @GetMapping("/user/quotes")
     public List<Quote> getAllQuotes(){
         return quoteService.getAllQuotes();
     }
 
-    @GetMapping("/quotes/{id}")
+    @GetMapping("/user/quotes/{id}")
     public Optional<Quote> getQuote(@PathVariable Long id){
         return quoteService.getQuoteById(id);
     }
