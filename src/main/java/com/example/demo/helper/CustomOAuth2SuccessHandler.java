@@ -19,9 +19,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private JwtUtil jwtUtil;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+
         OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
         Map<String, Object> attributes = authToken.getPrincipal().getAttributes();
 
