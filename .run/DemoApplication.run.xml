@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="DemoApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="JWT_SECRET" value="jR4zK2qP8xW7nM9vL3hT6cD1bY5gF0sE" />
+      <env name="GOOGLE_CLIENT_ID" value="990348001980-g8m4abf4cfu4m46tsds19fe0uj1n8re9.apps.googleusercontent.com" />
+      <env name="GOOGLE_CLIENT_SECRET" value="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 " />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.example.demo.DemoApplication" />
+    <module name="demo" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
