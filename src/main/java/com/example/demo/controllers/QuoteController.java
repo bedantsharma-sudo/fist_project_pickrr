@@ -1,9 +1,12 @@
 package com.example.demo.controllers;
 
 
+import com.example.demo.helper.RateLimit;
 import com.example.demo.model.Quote;
 import com.example.demo.service.QuoteService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
+@RequiredArgsConstructor
 class QuoteController {
     @Autowired
     private QuoteService quoteService;
@@ -25,6 +29,7 @@ class QuoteController {
     public QuoteController(QuoteService quoteService){
         this.quoteService = quoteService;
     }
+
 
     @GetMapping("/quotes")
     public String getAllQuote(Model model, @RequestParam(defaultValue = "0") int page,
@@ -54,6 +59,7 @@ class QuoteController {
     }
 
     @GetMapping("/user/quotes/{id}")
+    @RateLimit(limit = 3,duration = 60)
     public String showSingleQuote(@PathVariable Long id, Model model) {
         Optional<Quote> quoteOptional = quoteService.getQuoteById(id);
         if (quoteOptional.isPresent()) {

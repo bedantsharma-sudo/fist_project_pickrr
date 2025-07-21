@@ -45,6 +45,7 @@ public class RedisConfig {
                 .findAndAddModules()
                 .build();
     }
+
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory,  RedisCacheConfiguration redisCacheConfiguration){
         return RedisCacheManager.builder(connectionFactory)

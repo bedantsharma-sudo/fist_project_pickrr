@@ -23,6 +23,7 @@ public class QuoteService {
         this.quoteRepo = quoteRepo;
     }
 
+
     public Page<Quote> getAllQuotes(Pageable pageable) {
         return quoteRepo.findAll(pageable);
     }
