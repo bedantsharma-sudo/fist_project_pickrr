@@ -2,20 +2,23 @@ package com.example.demo.service;
 
 import com.example.demo.model.Writer;
 import com.example.demo.repository.WriterRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-@Service
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final WriterRepository writerRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
     public CustomOAuth2UserService(WriterRepository writerRepository, PasswordEncoder passwordEncoder) {
         this.writerRepository = writerRepository;
@@ -35,8 +38,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 writer.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
                 writer.setRole("USER");
                 writerRepository.save(writer);
+
+                logger.info("new user created: {}",writer.getUsername());
             }
         }
+        else{
+            logger.info("email of your is empty");
+        }
+
         return oAuth2User;
     }
 } 
