@@ -38,7 +38,7 @@ public class RegistrationController {
             return "register";
         }
         writer.setPassword(passwordEncoder.encode(writer.getPassword()));
-        writer.setRole("USER");
+        writer.setRole("ROLE_USER");
         writerRepository.save(writer);
         return "redirect:/Log";
     }
