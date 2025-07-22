@@ -44,7 +44,7 @@ public class SecurityConfig {
                             "/test",
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
-                            "/swagger-ui.html",
+                            "/swagger-ui.html"
                     ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
