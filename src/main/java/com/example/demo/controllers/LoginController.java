@@ -28,6 +28,4 @@ public class LoginController {
         model.addAttribute("jwtToken", token);
         return "welcome! logged in successfully your token is : \n"+token;  // This should map to `welcome.html` in templates
     }
-
-
 }

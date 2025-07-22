@@ -5,11 +5,14 @@ import com.example.demo.helper.RateLimit;
 import com.example.demo.model.Quote;
 import com.example.demo.service.QuoteService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +20,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
 class QuoteController {
+    private static final Logger logger = LoggerFactory.getLogger(QuoteController.class);
+
     @Autowired
     private QuoteService quoteService;
 
@@ -37,6 +41,9 @@ class QuoteController {
                                     @RequestParam(defaultValue = "10") int size,
                                     @RequestParam(defaultValue = "id") String sortBy, // New: for sorting
                                     @RequestParam(defaultValue = "desc") String sortDir){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authorities: " + auth.getAuthorities());
+
 
         Pageable pageable;
         if (sortDir.equalsIgnoreCase("asc")) {
@@ -62,6 +69,8 @@ class QuoteController {
     @GetMapping("/user/quotes/{id}")
     @RateLimit(limit = 20,duration = 60)
     public String showSingleQuote(@PathVariable Long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authorities: " + auth.getAuthorities());
         Optional<Quote> quoteOptional = quoteService.getQuoteById(id);
         if (quoteOptional.isPresent()) {
             model.addAttribute("quote", quoteOptional.get());
