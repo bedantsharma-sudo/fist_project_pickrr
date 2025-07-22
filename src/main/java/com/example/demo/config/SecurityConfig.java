@@ -31,25 +31,30 @@ public class SecurityConfig {
     private final CustomBasicAuthSuccessHandler customBasicAuthSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
+                    registry.requestMatchers(
+                            "/v3/api-docs/**",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html"
+                    ).permitAll();
+
                     registry.requestMatchers(
                             "/Log",
                             "/register/**",
                             "/quotes",
                             "/loginWithGoogle",
                             "/welcome",
-                            "/test",
-                            "/v3/api-docs/**",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html"
+                            "/test"
                     ).permitAll();
+
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
                     registry.anyRequest().authenticated();
-                }).formLogin(form -> form
+                })
+                .formLogin(form -> form
                         .loginPage("/Log")
                         .successHandler(customBasicAuthSuccessHandler)
                         .permitAll()
@@ -57,9 +62,11 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/Log")
                         .successHandler(customOAuth2SuccessHandler)
-                        .failureHandler(customAuthenticationFailureHandler))
+                        .failureHandler(customAuthenticationFailureHandler)
+                )
                 .build();
     }
+
 
     @Bean
     public AuthenticationProvider authenticationProvider(WriterService writerService, PasswordEncoder passwordEncoder){
