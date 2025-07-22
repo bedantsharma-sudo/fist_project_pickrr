@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
                     registry.requestMatchers(
+                            "/Log",
                             "/register/**",
                             "/quotes",
                             "/loginWithGoogle",
@@ -50,7 +51,10 @@ public class SecurityConfig {
                         .successHandler(customBasicAuthSuccessHandler)
                         .permitAll()
                 )
-                .oauth2Login(oauth2 -> oauth2.successHandler(customOAuth2SuccessHandler).failureHandler(customAuthenticationFailureHandler))
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/Log")
+                        .successHandler(customOAuth2SuccessHandler)
+                        .failureHandler(customAuthenticationFailureHandler))
                 .build();
     }
 
