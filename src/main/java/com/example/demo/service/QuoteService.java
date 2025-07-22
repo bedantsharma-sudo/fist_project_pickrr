@@ -2,13 +2,15 @@ package com.example.demo.service;
 
 import com.example.demo.model.Quote;
 import com.example.demo.repository.QuoteRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +23,16 @@ public class QuoteService {
         this.quoteRepo = quoteRepo;
     }
 
+
+    public Page<Quote> getAllQuotes(Pageable pageable) {
+        return quoteRepo.findAll(pageable);
+    }
+    @Cacheable(value = "quotes", key = "#id")
+    public Optional<Quote> getQuoteById(Long id) {
+        return quoteRepo.findById(id);
+    }
+
+    @CachePut(value = "quotes", key="#result.id")
     public Quote saveQuote(Quote quote) {
         if(quote.getAuthor() == null || quote.getAuthor().isEmpty()) {
             quote.setAuthor("Anonymous");
@@ -31,14 +43,7 @@ public class QuoteService {
         return quoteRepo.save(quote);
     }
 
-    public Page<Quote> getAllQuotes(Pageable pageable) {
-        return quoteRepo.findAll(pageable);
-    }
-
-    public Optional<Quote> getQuoteById(Long id) {
-        return quoteRepo.findById(id);
-    }
-
+    @CachePut(value = "quotes", key = "#id")
     public Quote updateQuote(Long id, Quote quote) {
         return quoteRepo.findById(id)
                 .map(existingQuote -> {
@@ -54,6 +59,7 @@ public class QuoteService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Id doesn't exist" + id));
     }
 
+    @CacheEvict(value = "quotes", key = "#id")
     public void deleteQuote(Long id) {
         if (!quoteRepo.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Id doesn't exist" + id);

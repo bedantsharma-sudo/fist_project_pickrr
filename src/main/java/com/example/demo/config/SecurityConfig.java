@@ -1,8 +1,13 @@
 package com.example.demo.config;
 
 
+import com.example.demo.helper.CustomAuthenticationFailureHandler;
+import com.example.demo.helper.CustomBasicAuthSuccessHandler;
 import com.example.demo.helper.CustomOAuth2SuccessHandler;
 import com.example.demo.service.WriterService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -18,34 +23,38 @@ import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
-
-    // Constructor injection for CustomOAuth2SuccessHandler
-    public SecurityConfig(CustomOAuth2SuccessHandler customOAuth2SuccessHandler) {
-        this.customOAuth2SuccessHandler = customOAuth2SuccessHandler;
-    }
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+    private final CustomBasicAuthSuccessHandler customBasicAuthSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(registry->{
-                    registry.requestMatchers("/register/**","/quotes","/loginWithGoogle","/login").permitAll();
+                .authorizeHttpRequests(registry -> {
+                    registry.requestMatchers(
+                            "/Log",
+                            "/register/**",
+                            "/quotes",
+                            "/loginWithGoogle",
+                            "/welcome",
+                            "/test"
+                    ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
                     registry.anyRequest().authenticated();
-                }).formLogin(formLogin ->
-                        formLogin
-                                .loginPage("/login")
-                                .permitAll()
+                }).formLogin(form -> form
+                        .loginPage("/Log")
+                        .successHandler(customBasicAuthSuccessHandler)
+                        .permitAll()
                 )
-                .oauth2Login(oauth2Login ->
-                        oauth2Login
-                                .loginPage("/login")
-                                .successHandler(customOAuth2SuccessHandler)
-                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/Log")
+                        .successHandler(customOAuth2SuccessHandler)
+                        .failureHandler(customAuthenticationFailureHandler))
                 .build();
     }
 
@@ -56,7 +65,6 @@ public class SecurityConfig {
         provider.setUserDetailsService(writerService);
         return provider;
     }
-
 
     @Bean
     public HiddenHttpMethodFilter hiddenHttpMethodFilter(){
