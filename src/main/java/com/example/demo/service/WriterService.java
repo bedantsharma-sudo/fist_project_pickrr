@@ -18,7 +18,6 @@ public class WriterService implements UserDetailsService {
     private WriterRepository writerRepository;
 
     @Override
-    @Cacheable(value = "users", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Writer> writer = writerRepository.findByUsername(username);
         if(writer.isPresent()){

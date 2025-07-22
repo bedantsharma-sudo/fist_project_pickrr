@@ -16,8 +16,8 @@ import java.util.Locale;
 class DataLoader implements CommandLineRunner {
     private final QuoteRepository quotesRepository;
     private Faker faker;
-    private static final int Number_of_Entries = 20;
-    private static final int BATCH_SIZE = 20;
+    private static final int Number_of_Entries = 150;
+    private static final int BATCH_SIZE = 150;
     public DataLoader(QuoteRepository quotesRepository){
         this.quotesRepository = quotesRepository;
         this.faker= new Faker(new Locale("en-US"));
@@ -26,7 +26,7 @@ class DataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args){
-        if(quotesRepository.count() < 10){
+        if(quotesRepository.count() < 100){
             List<Quote> initialQuote = new ArrayList<>();
             for(int i=0;i<Number_of_Entries;i++){
                 Quote quote = new Quote();

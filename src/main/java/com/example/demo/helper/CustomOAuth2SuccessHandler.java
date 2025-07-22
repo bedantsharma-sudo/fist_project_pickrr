@@ -1,5 +1,6 @@
 package com.example.demo.helper;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -26,15 +27,11 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         Map<String, Object> attributes = authToken.getPrincipal().getAttributes();
 
         String email = (String) attributes.get("email");
-
-        // ✅ Store user in session
         HttpSession session = request.getSession();
         session.setAttribute("user", attributes);
 
-        // ✅ Generate JWT
         String jwt = jwtUtil.generateToken(email);
 
-        // ✅ Send JWT to client (e.g., redirect or set in header)
-        response.sendRedirect("/welcome?token=" + jwt);
+        response.sendRedirect("/quotes");
     }
 }

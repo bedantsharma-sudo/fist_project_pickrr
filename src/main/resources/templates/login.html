@@ -93,7 +93,7 @@
     </div>
 
     <!-- Basic Authentication Form -->
-    <form th:action="@{/login}" method="post" class="mb-6">
+    <form th:action="@{/Log}" method="post" class="mb-6">
         <input type="text" id="username" name="username" placeholder="Username" class="input-field" required>
         <input type="password" id="password" name="password" placeholder="Password" class="input-field" required>
         <button type="submit" class="button-primary">Log In</button>
@@ -115,6 +115,12 @@
         </svg>
         Sign in with Google
     </a>
+    <div class="mt-4">
+        <a th:href="@{/register}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            Don't have an account? Sign up here
+        </a>
+    </div>
+
 </div>
 </body>
 </html>
