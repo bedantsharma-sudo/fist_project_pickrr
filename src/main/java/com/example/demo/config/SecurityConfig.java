@@ -38,10 +38,7 @@ public class SecurityConfig {
                     registry.requestMatchers(
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
-                            "/swagger-ui.html"
-                    ).permitAll();
-
-                    registry.requestMatchers(
+                            "/swagger-ui.html",
                             "/Log",
                             "/register/**",
                             "/quotes",
