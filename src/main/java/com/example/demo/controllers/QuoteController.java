@@ -30,6 +30,11 @@ class QuoteController {
         this.quoteService = quoteService;
     }
 
+    @GetMapping("/")
+    public String redirectToHome(){
+        return "redirect:/quotes";
+    }
+
 
     @GetMapping("/quotes")
     @RateLimit(limit = 30,duration = 60)
