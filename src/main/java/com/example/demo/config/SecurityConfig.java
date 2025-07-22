@@ -41,7 +41,10 @@ public class SecurityConfig {
                             "/quotes",
                             "/loginWithGoogle",
                             "/welcome",
-                            "/test"
+                            "/test",
+                            "/v3/api-docs/**",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
                     ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
