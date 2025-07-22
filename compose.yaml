@@ -1,14 +1,62 @@
+version: '3.8'
+
 services:
   mysql:
-    image: 'mysql:latest'
+    image: mysql:8.0
+    container_name: mysql
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
-      - 'MYSQL_PASSWORD=secret'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-      - 'MYSQL_USER=myuser'
+      MYSQL_DATABASE: test2
+      MYSQL_ROOT_PASSWORD: 1234
     ports:
-      - '3306'
+      - "3306:3306"
+    networks:
+      - spring-net
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   redis:
-    image: 'redis:latest'
+    image: redis:7
+    container_name: redis
     ports:
-      - '6379'
+      - "6379:6379"
+    networks:
+      - spring-net
+    healthcheck:
+      test: [ "CMD","sh","-c", "redis-cli -h 127.0.0.1 ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  quoteit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quoteit-app
+    depends_on:
+      mysql :
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - spring-net
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=default
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/test2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+#      - SPRING_DATASOURCE_USERNAME=root
+#      - SPRING_DATASOURCE_PASSWORD=1234
+#      - SPRING_REDIS_HOST=redis
+#      - SPRING_REDIS_PORT=6379
+
+volumes:
+  mysql_data:
+
+networks:
+  spring-net:
