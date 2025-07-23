@@ -123,21 +123,18 @@ Once running, the app will be available at:
 
 | Method | Endpoint         | Auth Required | Description            |
 |--------|------------------|---------------|------------------------|
-| | HTTP Method | Endpoint                 | Auth Required | Description                                          |
+| | HTTP Method | Endpoint                | Auth Required | Description                                          |
 | ----------- | ------------------------- | ------------- | ---------------------------------------------------- |
-| `GET`       | `/Log`                    | ❌ No         | Show login page (form)                               |
-| `GET`       | `/loginWithGoogle`        | ❌ No         | Redirect to Google OAuth                             |
+| `GET`       | `/Log`                    | ❌ No          | Show login page (form)                               |
+| `GET`       | `/loginWithGoogle`        | ❌ No          | Redirect to Google OAuth                             |
 | `GET`       | `/welcome?token={token}`  | ✅ Yes (OAuth) | Show welcome message with JWT                        |
-| `GET`       | `/register`               | ❌ No         | Show user registration form                          |
-| `POST`      | `/register`               | ❌ No         | Register a new user                                  |
-| `GET`       | `/quotes`                 | ❌ No         | Paginated, sorted list of quotes                     |
-| `GET`       | `/user/quotes/{id}`       | ✅ Yes        | View details of a single quote                       |
-| `POST`      | `/user/quotes`            | ✅ Yes        | Add a new quote                                      |
-| `PUT`       | `/user/quotes/{id}`       | ✅ Yes        | Update an existing quote                             |
-| `DELETE`    | `/user/quotes/{id}`       | ✅ Yes        | Delete a quote                                       |
-
-
-
+| `GET`       | `/register`               | ❌ No          | Show user registration form                          |
+| `POST`      | `/register`               | ❌ No          | Register a new user                                  |
+| `GET`       | `/quotes`                 | ❌ No          | Paginated, sorted list of quotes                     |
+| `GET`       | `/user/quotes/{id}`       | ✅ Yes         | View details of a single quote                       |
+| `POST`      | `/user/quotes`            | ✅ Yes         | Add a new quote                                      |
+| `PUT`       | `/user/quotes/{id}`       | ✅ Yes         | Update an existing quote                             |
+| `DELETE`    | `/user/quotes/{id}`       | ✅ Yes         | Delete a quote                                       |
 
 
 ---
