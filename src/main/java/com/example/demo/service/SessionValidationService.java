@@ -61,7 +61,7 @@ public class SessionValidationService {
     }
 
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void validateActiveSessions() {
         logger.info("Running scheduled session validation check...");
 
