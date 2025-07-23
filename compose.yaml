@@ -2,15 +2,13 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8.0
+    image: docker.io/library/mysql:8.0
     container_name: mysql
     environment:
       MYSQL_DATABASE: test2
       MYSQL_ROOT_PASSWORD: 1234
     ports:
-      - "3306:3306"
-    networks:
-      - spring-net
+      - "3310:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -21,12 +19,10 @@ services:
       start_period: 20s
 
   redis:
-    image: redis:7
+    image: docker.io/library/redis:7.0
     container_name: redis
     ports:
-      - "6379:6379"
-    networks:
-      - spring-net
+      - "6381:6379"
     healthcheck:
       test: [ "CMD","sh","-c", "redis-cli -h 127.0.0.1 ping | grep PONG"]
       interval: 5s
@@ -44,17 +40,15 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8080:8080"
-    networks:
-      - spring-net
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=default
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/test2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=1234
-#      - SPRING_REDIS_HOST=redis
-#      - SPRING_REDIS_PORT=6379
-
+      - "8081:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/test2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "1234"
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: "6379"
+      SPRING_CACHE_TYPE: redis
 volumes:
   mysql_data:
 
