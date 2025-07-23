@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(registry -> {
                     registry.requestMatchers(
                             "/v3/api-docs/**",
-                            "/swagger-ui/**",
+                            "/swagger-ui",
                             "/swagger-ui.html",
                             "/Log",
                             "/register/**",

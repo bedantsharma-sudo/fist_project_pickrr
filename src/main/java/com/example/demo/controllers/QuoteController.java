@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 class QuoteController {
     private static final Logger logger = LoggerFactory.getLogger(QuoteController.class);
