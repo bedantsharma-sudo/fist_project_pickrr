@@ -1,4 +1,4 @@
-package com.example.demo.helper;
+package com.example.demo.config;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
