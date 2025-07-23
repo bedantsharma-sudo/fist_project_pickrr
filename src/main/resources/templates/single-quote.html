@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,6 +60,12 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="container">
+    <div sec:authorize="isAuthenticated()" class="flex justify-end mb-4">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-danger">Logout</button>
+        </form>
+    </div>
+
     <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Quote Details</h1>
 
     <div class="bg-white p-6 rounded-xl shadow-lg mb-8 quote-display">

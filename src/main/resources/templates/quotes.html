@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,12 +93,13 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="container">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-4xl font-bold text-gray-800">My Quotes Collection</h1>
-        <form action="/logout" method="post">
-            <button class="btn-danger" type="submit">Logout</button>
+    <div sec:authorize="isAuthenticated()" class="flex justify-end mb-4">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-danger">Logout</button>
         </form>
     </div>
+
+    <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">My Quotes Collection</h1>
 
     <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
         <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add a New Quote</h2>
@@ -120,8 +121,8 @@
         <ul id="quotesList" class="space-y-4">
             <li th:each="quote : ${quotes}" class="quote-item p-4 rounded-lg flex justify-between items-center shadow-sm">
                 <div>
-                    <p class="text-gray-800 text-lg italic">"<span th:text="${quote.content}">Quote content goes here</span>"</p>
-                    <p class="text-gray-600 text-md mt-1">- <span th:text="${quote.author}">Author Name</span></p>
+                    <p class="text-gray-800 text-lg italic">"<span th:text="${quote.content}"></span>"</p>
+                    <p class="text-gray-600 text-md mt-1">- <span th:text="${quote.author}"></span></p>
                     <a th:href="@{/user/quotes/{id}(id=${quote.id})}" class="text-blue-600 hover:underline text-sm mt-2 block">View Details</a>
                 </div>
                 <form th:action="@{/user/quotes/{id}(id=${quote.id})}" method="post">
@@ -146,8 +147,8 @@
                 <span th:each="i : ${#numbers.sequence(startPage, endPage)}">
                     <a th:if="${i != currentPage}"
                        th:href="@{/quotes(page=${i}, size=${pageSize}, sortBy=${sortField}, sortDir=${sortDirection})}"
-                       th:text="${i + 1}">1</a>
-                    <span th:if="${i == currentPage}" th:text="${i + 1}" class="current-page">1</span>
+                       th:text="${i + 1}"></a>
+                    <span th:if="${i == currentPage}" th:text="${i + 1}" class="current-page"></span>
                 </span>
                 <span th:if="${endPage < totalPages - 1}">...</span>
             </th:block>
@@ -208,7 +209,7 @@
         }
 
         checkSession();
-        setInterval(checkSession, 30000); // Repeat every 30s
+        setInterval(checkSession, 30000);
     });
 </script>
 

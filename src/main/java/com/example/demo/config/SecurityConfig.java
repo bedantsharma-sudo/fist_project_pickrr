@@ -36,8 +36,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for non-browser clients like Postman
                 .authorizeHttpRequests(registry -> {
+                    // Permit access to specific endpoints
                     registry.requestMatchers(
                             "/Log",
                             "/register/**",
@@ -48,9 +49,9 @@ public class SecurityConfig {
                     ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
-                    registry.anyRequest().authenticated();
+                    registry.anyRequest().authenticated(); // All other requests require authentication
                 })
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class) // Add JWT filter before the UsernamePassword filter
                 .formLogin(form -> form
                         .loginPage("/Log")
                         .successHandler(customBasicAuthSuccessHandler)
@@ -79,6 +80,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Using BCrypt for password encoding
     }
 }
