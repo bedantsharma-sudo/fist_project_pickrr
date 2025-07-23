@@ -66,5 +66,15 @@ public class QuoteService {
         }
         quoteRepo.deleteById(id);
     }
-    
+
+    public Quote getRandomQuote() {
+        List<Quote> quotes = quoteRepo.findAll();
+        if (quotes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No quotes available.");
+        }
+        int randomIndex = (int) (Math.random() * quotes.size());
+        return quotes.get(randomIndex);
+    }
+
+
 }
