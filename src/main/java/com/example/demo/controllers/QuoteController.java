@@ -28,9 +28,9 @@ class QuoteController {
     @Autowired
     private QuoteService quoteService;
 
-    public QuoteController(QuoteService quoteService){
-        this.quoteService = quoteService;
-    }
+//    public QuoteController(QuoteService quoteService){
+//        this.quoteService = quoteService;
+//    }
 
 
     @GetMapping("/quotes")
