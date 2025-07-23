@@ -1,6 +1,8 @@
 package com.example.demo.config;
 
 import com.example.demo.helper.RateLimit;
+import com.nimbusds.jose.jwk.source.RateLimitReachedException;
+import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -11,6 +13,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
@@ -77,7 +82,7 @@ public class RateLimitingConfig{
         return joinPoint.proceed();
     }
 
-    @Around("@annotation(rateLimit)")
+//    @Around("@annotation(rateLimit)")
     public Object tokenBucket(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
         long refillPerSec = 5;
         long capacity = 50;
@@ -105,6 +110,29 @@ public class RateLimitingConfig{
         redisTemplate.opsForValue().set(count,String.valueOf(currentCount));
         redisTemplate.opsForValue().set(last_ts,String.valueOf(now));
         return joinPoint.proceed();
+    }
+
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public Bucket createNewBucket(){
+        return Bucket.builder().addLimit(limit -> limit.capacity(100).refillGreedy(100, Duration.ofMinutes(1)))
+                .addLimit(limit -> limit.capacity(5).refillIntervally(5,Duration.ofMillis(100)))
+                .build();
+    }
+
+    @Around("@annotation(rateLimit)")
+    public Object tokenThrottler(ProceedingJoinPoint joinPoint,RateLimit rateLimit) throws Throwable {
+        String key = request.getRemoteAddr();
+        Bucket bucket = buckets.computeIfAbsent(key, k -> createNewBucket());
+
+        System.out.println("Key: " + key+"is sending a request: " + bucket.getAvailableTokens());
+        boolean consumed = bucket.asBlocking().tryConsume(1,Duration.ofSeconds(3));
+        if(consumed){
+            return joinPoint.proceed();
+        } else {
+            throw new ResponseStatusException(TOO_MANY_REQUESTS, "Too many requests. Try again later.");
+        }
+
     }
 
 
