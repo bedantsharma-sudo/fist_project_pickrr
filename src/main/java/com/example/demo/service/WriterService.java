@@ -25,7 +25,7 @@ public class WriterService implements UserDetailsService {
             return User.builder()
                     .username(obj.getUsername())
                     .password(obj.getPassword())
-                    .roles(getRoles(obj))
+                    .authorities(getRoles(obj))
                     .build();
         } else{
             throw new UsernameNotFoundException(username);
@@ -34,7 +34,6 @@ public class WriterService implements UserDetailsService {
 
     public String[] getRoles(Writer writer){
         if(writer.getRole()==null){
-            System.out.println("Always this mf");
             return new String[]{"USER"};
         }
         return writer.getRole().split(",");

@@ -54,5 +54,4 @@ public class GlobalRateLimiting extends OncePerRequestFilter {
 
         filterChain.doFilter(request,response);
     }
-
 }

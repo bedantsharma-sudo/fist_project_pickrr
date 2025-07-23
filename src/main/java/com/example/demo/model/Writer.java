@@ -26,5 +26,4 @@ public class Writer {
     private String password;
 
     private String role;
-
 }
