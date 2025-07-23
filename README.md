@@ -1,30 +1,32 @@
 # 📚 Quotes API
 
-A Spring Boot application that provides a RESTful API for managing and retrieving quotes with user authentication and rate limiting.
+A full-stack Spring Boot application that offers a RESTful and web-based platform to manage inspirational quotes. Includes secure user authentication, rate limiting, pagination, OAuth login, and Redis caching.
 
 ---
 
 ## 🚀 Features
 
-- Add a new quote (requires authentication)
-- View all quotes (requires authentication)
-- Rate limiting using Redis
-- Basic Auth and OAuth
-- HTML-based UI
-- Cashing using Redis
+✅ User registration and login (Basic Auth + Google OAuth2)  
+✅ Add, update, view, and delete quotes  
+✅ Pagination and sorting of quotes  
+✅ Rate limiting with Redis  
+✅ Caching for performance optimization  
+✅ JWT token support  
+✅ HTML-based frontend using Thymeleaf
 
 ---
 
-## 🔧 Tech Stack
+## 🧰 Tech Stack
 
-- Java 21
-- Spring Boot 3.5.3
-- MySQL
-- Redis (for rate limiting and cashing)
-- Spring Security (Basic Auth)
-- Oauth 2.0 (Google)
-- Thymeleaf (HTML templates)
-- Maven
+| Layer | Tools |
+|-------|-------|
+| Language | Java 21 |
+| Backend | Spring Boot 3.5.3 |
+| Database | MySQL |
+| Cache & Rate Limiting | Redis |
+| Security | Spring Security (Basic Auth), OAuth2 (Google) |
+| Frontend | Thymeleaf Templates |
+| Build Tool | Maven |
 
 ---
 
@@ -39,23 +41,23 @@ cd fist_project_pickrr
 
 ---
 
-### 2. 🧩 Install Dependencies
+### 2. 📦 Install Dependencies
 
-Ensure you have the following installed:
+Ensure the following are installed:
 
-- Java 21
-- Maven
-- MySQL
-- Redis
+- ✅ Java 21
+- ✅ Maven
+- ✅ MySQL
+- ✅ Redis
 
-#### 🔴 To install Redis (Ubuntu):
+#### ➕ Installing Redis (Ubuntu):
 
 ```bash
 sudo apt update
 sudo apt install redis
 ```
 
-Verify Redis is running:
+✅ Check if Redis is running:
 
 ```bash
 redis-cli ping
@@ -64,37 +66,31 @@ redis-cli ping
 
 ---
 
-### 3. 🗃️ MySQL Setup
+### 3. 🗃️ MySQL Database Setup
 
-1. Start your MySQL server.
-2. Create a new database:
+1. Start MySQL server
+2. Create database:
 
 ```sql
-CREATE DATABASE quotes_db;
 ```
 
-3. Update your database credentials in `src/main/resources/application.properties`:
+3. Update `application.properties`:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/quotes_db
 spring.datasource.username=root
-spring.datasource.password=YOUR_PASSWORD
+spring.datasource.password=<your_mysql_password>
 spring.jpa.hibernate.ddl-auto=update
+jwt.secret=your_very_secret_jwt_key
 ```
 
 ---
 
-### 4. 📦 Build the Project
-
-Run the following command to build and install dependencies:
+### 4. 🧱 Build the Project
 
 ```bash
 ./mvnw clean install
-```
-
-On Windows:
-
-```bash
+# or on Windows:
 mvnw.cmd clean install
 ```
 
@@ -106,12 +102,15 @@ mvnw.cmd clean install
 ./mvnw spring-boot:run
 ```
 
-Once running, the app will be available at:  
+App will run at:
+
 📍 `http://localhost:8080`
 
 ---
 
-## 🔐 Default Auth Users
+## 👥 Default Auth Users
+
+> You can create new users via `/register` page
 
 | Username | Password | Role   |
 |----------|----------|--------|
@@ -119,46 +118,59 @@ Once running, the app will be available at:
 
 ---
 
-## 🧪 API Endpoints
+## 🌐 API & Web Endpoints
 
-| Method | Endpoint         | Auth Required | Description            |
-|--------|------------------|---------------|------------------------|
-| | HTTP Method | Endpoint                | Auth Required | Description                                          |
-| ----------- | ------------------------- | ------------- | ---------------------------------------------------- |
-| `GET`       | `/Log`                    | ❌ No          | Show login page (form)                               |
-| `GET`       | `/loginWithGoogle`        | ❌ No          | Redirect to Google OAuth                             |
-| `GET`       | `/welcome?token={token}`  | ✅ Yes (OAuth) | Show welcome message with JWT                        |
-| `GET`       | `/register`               | ❌ No          | Show user registration form                          |
-| `POST`      | `/register`               | ❌ No          | Register a new user                                  |
-| `GET`       | `/quotes`                 | ❌ No          | Paginated, sorted list of quotes                     |
-| `GET`       | `/user/quotes/{id}`       | ✅ Yes         | View details of a single quote                       |
-| `POST`      | `/user/quotes`            | ✅ Yes         | Add a new quote                                      |
-| `PUT`       | `/user/quotes/{id}`       | ✅ Yes         | Update an existing quote                             |
-| `DELETE`    | `/user/quotes/{id}`       | ✅ Yes         | Delete a quote                                       |
+### 🔑 Authentication & Registration
 
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/Log` | ❌ | Login form (HTML) |
+| GET | `/loginWithGoogle` | ❌ | Redirect to Google OAuth |
+| GET | `/welcome?token={token}` | ✅ (OAuth) | Welcome page with JWT token |
+| GET | `/register` | ❌ | Registration form |
+| POST | `/register` | ❌ | Register new user |
 
 ---
+
+### 📝 Quote Management
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|-----|-------------|
+| GET | `/quotes` | ❌ | List of all quotes (paginated, sortable) |
+| GET | `/user/quotes/{id}` | ✅ | View single quote |
+| POST | `/user/quotes` | ✅ | Create a new quote |
+| PUT | `/user/quotes/{id}` | ✅ | Update existing quote |
+| DELETE | `/user/quotes/{id}` | ✅ | Delete quote |
+
+---
+
 
 ## 🧑‍💻 Developer Notes
 
-- Redis is used for rate limiting through `RateLimiterService`.
-- HTML templates are located in `src/main/resources/templates/`.
-- MySQL entities are managed via JPA and auto-created if `ddl-auto=update`.
-- OAuth2 login (if used) is configured via `SecurityConfig.java`.
+- JWTs are generated using `JwtUtil` and validated by a custom filter
+- OAuth is configured with Google via Spring Security
+- HTML templates: `src/main/resources/templates/`
+- Redis is used for both rate limiting and caching quote data
+- MySQL schema is auto-generated via JPA
+- Initial test quotes and users are optionally loaded into the DB on startup using a CommandLineRunner.
+- Passwords are securely hashed using BCryptPasswordEncoder. 
+- Quotes are paginated and sorted by ID for consistency.
+
 
 ---
 
-## 🔄 Known Issues / Improvements
+## 🔄 Improvements / TODOs
 
-- Replace Basic Auth with JWT
-- Improve error handling and validation
-- Add Swagger documentation
+- [ ] Switch fully to JWT instead of Basic Auth
+- [ ] Add Swagger/OpenAPI docs
+- [ ] Better error handling (404, 401, etc.)
+- [ ] Dockerize app and Redis setup
 
 ---
 
-## 🧪 Sample Test Users and cURL Examples
+## 📬 Example cURL Commands
 
-Add a new quote (requires auth):
+### ➕ Add a Quote (Basic Auth):
 
 ```bash
 curl -u user1:pass1 -X POST http://localhost:8080/user/quotes \
@@ -166,5 +178,11 @@ curl -u user1:pass1 -X POST http://localhost:8080/user/quotes \
 -d '{"content": "Keep pushing forward", "author": "Anonymous"}'
 ```
 
----
+### 🔍 Get Auth Info (JWT):
 
+```bash
+curl -H "Authorization: Bearer <your_token>" \
+http://localhost:8080/check
+```
+
+---

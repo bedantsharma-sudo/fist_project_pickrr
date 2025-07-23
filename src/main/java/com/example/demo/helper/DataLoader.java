@@ -6,6 +6,9 @@ import com.example.demo.repository.QuoteRepository;
 import com.github.javafaker.Faker;
 import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ class DataLoader implements CommandLineRunner {
 
     @Override
     @Transactional
+
     public void run(String... args){
         if(quotesRepository.count() < 100){
             List<Quote> initialQuote = new ArrayList<>();
