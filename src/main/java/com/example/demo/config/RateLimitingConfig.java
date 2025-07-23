@@ -1,7 +1,6 @@
 package com.example.demo.config;
 
 import com.example.demo.helper.RateLimit;
-import com.example.demo.helper.RateLimiterService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
