@@ -22,13 +22,27 @@ public class CustomBasicAuthSuccessHandler implements AuthenticationSuccessHandl
         String name = authentication.getName();
         String token = jwtUtil.generateToken(name);
 
+////        Cookie cookie = new Cookie("jwt", token);
+////        cookie.setHttpOnly(true);
+////        cookie.setSecure(true);
+////        cookie.setPath("/");
+////        cookie.setMaxAge(10 * 60);
+////        response.addCookie(cookie);
+//        Cookie cookie = new Cookie("jwt", token);
+//        cookie.setHttpOnly(true);
+//        cookie.setPath("/");
+//        cookie.setMaxAge(10 * 60); // 30 minutes
+//        response.addCookie(cookie);
+//
+//
+//      //  System.out.println(token);
+//        response.sendRedirect("/quotes");
         Cookie cookie = new Cookie("jwt", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
         cookie.setPath("/");
+        cookie.setMaxAge(10 * 60); // 10 minutes
         response.addCookie(cookie);
 
-        System.out.println(token);
-        response.sendRedirect("/quotes");
+        response.sendRedirect("/quotes?token=" + token);
     }
 }

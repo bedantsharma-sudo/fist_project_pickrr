@@ -1,74 +1,52 @@
 package com.example.demo.helper;
 
-import com.example.demo.model.Writer;
-import com.example.demo.repository.WriterRepository;
 import com.example.demo.service.WriterService;
+import com.example.demo.helper.JwtUtil;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
+import java.time.Duration;
+
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
-    private final WriterRepository writerRepository;
-    @Autowired
-    private WriterService writerService;
-
-    @Lazy
-    @Autowired
-    private PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
-    public CustomOAuth2SuccessHandler(WriterRepository writerRepository,
-                                      JwtUtil jwtUtil) {
-        this.writerRepository = writerRepository;
-        this.jwtUtil = jwtUtil;
-    }
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final WriterService writerService;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
-        OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
-        Map<String, Object> attributes = authToken.getPrincipal().getAttributes();
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-        String email = (String) attributes.get("email");
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                                        Authentication authentication) throws IOException, ServletException {
 
-        Writer writer = writerRepository.findByUsername(email).orElse(null);
+        String email = authentication.getName(); // typically the user's email
+        String token = jwtUtil.generateToken(email);
 
-        if(writer == null){
-            Writer newWriter = new Writer();
-            newWriter.setUsername(email);
-            newWriter.setPassword(passwordEncoder.encode("OAuth"));
-            newWriter.setRole("ROLE_USER");
-            writerRepository.save(newWriter);
-        }
+        log.info("Login successful for user: {}", email);
 
-        UserDetails userDetails = writerService.loadUserByUsername(email);
+        // Track logged-in users (optional)
+        redisTemplate.opsForValue().increment("current_logged_in_users");
 
-        UsernamePasswordAuthenticationToken token =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails.getUsername(),
-                        userDetails.getPassword(),
-                        userDetails.getAuthorities());
+        // Store token in Redis with expiry (optional)
+        redisTemplate.opsForValue().set(email, token, Duration.ofMinutes(30));
 
-        SecurityContextHolder.getContext().setAuthentication(token);
-        request.getSession().setAttribute("username", email);
+        // Set token as HttpOnly cookie
+        Cookie cookie = new Cookie("jwt", token);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(10 * 60); // 30 minutes
+        response.addCookie(cookie);
 
-        response.sendRedirect("/quotes");
+        response.sendRedirect("/quotes?token=" + token);
     }
 }

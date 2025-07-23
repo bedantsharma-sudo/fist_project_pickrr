@@ -58,11 +58,11 @@
         }
         .pagination {
             display: flex;
-            flex-wrap: wrap; /* Allows items to wrap to the next line */
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
             margin-top: 2rem;
-            gap: 0.5rem; /* Space between pagination items */
+            gap: 0.5rem;
         }
         .pagination a, .pagination span {
             padding: 0.5rem 1rem;
@@ -71,7 +71,7 @@
             text-decoration: none;
             color: #4299e1;
             transition: background-color 0.3s ease, color 0.3s ease;
-            white-space: nowrap; /* Prevent "First Page" from breaking */
+            white-space: nowrap;
         }
         .pagination a:hover {
             background-color: #e2e8f0;
@@ -86,14 +86,19 @@
             opacity: 0.5;
             pointer-events: none;
             cursor: not-allowed;
-            background-color: #f7fafc; /* Lighter background for disabled */
-            color: #a0aec0; /* Lighter text for disabled */
+            background-color: #f7fafc;
+            color: #a0aec0;
         }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="container">
-    <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">My Quotes Collection</h1>
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-4xl font-bold text-gray-800">My Quotes Collection</h1>
+        <form action="/logout" method="post">
+            <button class="btn-danger" type="submit">Logout</button>
+        </form>
+    </div>
 
     <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
         <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add a New Quote</h2>
@@ -137,13 +142,15 @@
                th:href="@{/quotes(page=${currentPage - 1}, size=${pageSize}, sortBy=${sortField}, sortDir=${sortDirection})}">Previous</a>
 
             <th:block th:with="startPage=${T(java.lang.Math).max(0, currentPage - 2)}, endPage=${T(java.lang.Math).min(totalPages - 1, currentPage + 2)}">
-                <span th:if="${startPage > 0}">...</span> <span th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                <span th:if="${startPage > 0}">...</span>
+                <span th:each="i : ${#numbers.sequence(startPage, endPage)}">
                     <a th:if="${i != currentPage}"
                        th:href="@{/quotes(page=${i}, size=${pageSize}, sortBy=${sortField}, sortDir=${sortDirection})}"
                        th:text="${i + 1}">1</a>
                     <span th:if="${i == currentPage}" th:text="${i + 1}" class="current-page">1</span>
                 </span>
-                <span th:if="${endPage < totalPages - 1}">...</span> </th:block>
+                <span th:if="${endPage < totalPages - 1}">...</span>
+            </th:block>
 
             <a th:classappend="${!hasNext ? 'disabled' : ''}"
                th:href="@{/quotes(page=${currentPage + 1}, size=${pageSize}, sortBy=${sortField}, sortDir=${sortDirection})}">Next</a>
@@ -153,5 +160,57 @@
         </div>
     </div>
 </div>
+
+<script>
+    function getToken() {
+        return localStorage.getItem("token");
+    }
+
+    function isJwtExpired(token) {
+        if (!token) return true;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const now = Math.floor(Date.now() / 1000);
+            return now >= payload.exp;
+        } catch (e) {
+            console.error("JWT decode error", e);
+            return true;
+        }
+    }
+
+    function checkSession() {
+        const token = getToken();
+        if (!token || isJwtExpired(token)) {
+            alert("Session expired or invalid. Logging out...");
+            location.href = "/logout";
+            return;
+        }
+
+        fetch("/session/validate", {
+            headers: { "Authorization": "Bearer " + token }
+        }).then(res => {
+            if (!res.ok) {
+                alert("Session invalid. Logging out...");
+                location.href = "/logout";
+            }
+        }).catch(() => {
+            alert("Session check failed. Logging out...");
+            location.href = "/logout";
+        });
+    }
+
+    window.addEventListener("load", () => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        if (token) {
+            localStorage.setItem("token", token);
+            window.history.replaceState({}, document.title, "/quotes");
+        }
+
+        checkSession();
+        setInterval(checkSession, 30000); // Repeat every 30s
+    });
+</script>
+
 </body>
 </html>
