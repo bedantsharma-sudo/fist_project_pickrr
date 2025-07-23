@@ -14,14 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class testController {
 
     @GetMapping("/test")
-    public void test(){
-        log.error("error");
-        log.info("info");
-        log.trace("trace");
-        log.warn("warn");
-        log.debug("debug");
-
-
+    @RateLimit(limit = 1,duration = 1)
+    public String test(){
+        return "Hello";
     }
 
     @GetMapping("/check")
