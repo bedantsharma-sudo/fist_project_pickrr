@@ -21,7 +21,7 @@ public class LoginRateLimitInterceptor implements HandlerInterceptor {
         String ip = request.getRemoteAddr();
         String uri = request.getRequestURI();
 
-        if (uri.equals("/login")) {
+        if (uri.equals("/Log")) {
             String key = "rate_limit:" + ip + ":" + uri;
 
             if (rateLimiterService.isRateLimited(key, 3, 30)) {
