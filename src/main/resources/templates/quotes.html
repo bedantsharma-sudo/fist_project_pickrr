@@ -161,7 +161,6 @@
         </div>
     </div>
 </div>
-
 <script>
     function getToken() {
         return localStorage.getItem("token");
@@ -200,6 +199,25 @@
         });
     }
 
+    // 🔄 Refresh token if not expired
+    function refreshToken() {
+        const token = getToken();
+        if (!token || isJwtExpired(token)) return;
+
+        fetch("/session/refresh", {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        }).then(res => res.text())
+            .then(newToken => {
+                if (newToken && !isJwtExpired(newToken)) {
+                    localStorage.setItem("token", newToken);
+                    console.log("Token refreshed");
+                }
+            }).catch(err => {
+            console.error("Token refresh failed", err);
+        });
+    }
+
     window.addEventListener("load", () => {
         const params = new URLSearchParams(window.location.search);
         const token = params.get("token");
@@ -209,7 +227,8 @@
         }
 
         checkSession();
-        setInterval(checkSession, 30000);
+        setInterval(checkSession, 30000);    // Validate session every 30 sec
+        setInterval(refreshToken, 60000);    // Refresh token every 1 min
     });
 </script>
 

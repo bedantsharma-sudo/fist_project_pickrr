@@ -122,29 +122,21 @@ Once running, the app will be available at:
 ## 🧪 API Endpoints
 
 | Method | Endpoint         | Auth Required | Description            |
-|--------|------------------|----------------|------------------------|
-| | HTTP Method | Endpoint                  | Auth Required | Description                                          |
+|--------|------------------|---------------|------------------------|
+| | HTTP Method | Endpoint                 | Auth Required | Description                                          |
 | ----------- | ------------------------- | ------------- | ---------------------------------------------------- |
-| `GET`       | `/Log`                    | ❌ No          | Show login page (form)                               |
-| `GET`       | `/loginWithGoogle`        | ❌ No          | Redirect to Google OAuth                             |
+| `GET`       | `/Log`                    | ❌ No         | Show login page (form)                               |
+| `GET`       | `/loginWithGoogle`        | ❌ No         | Redirect to Google OAuth                             |
 | `GET`       | `/welcome?token={token}`  | ✅ Yes (OAuth) | Show welcome message with JWT                        |
-| `GET`       | `/register`               | ❌ No          | Show user registration form                          |
-| `POST`      | `/register`               | ❌ No          | Register a new user                                  |
-| `GET`       | `/quotes`                 | ✅ Yes         | Paginated, sorted list of quotes                     |
-| `GET`       | `/user/quotes/{id}`       | ✅ Yes         | View details of a single quote                       |
-| `POST`      | `/user/quotes`            | ✅ Yes         | Add a new quote                                      |
-| `PUT`       | `/user/quotes/{id}`       | ✅ Yes         | Update an existing quote                             |
-| `DELETE`    | `/user/quotes/{id}`       | ✅ Yes         | Delete a quote                                       |
-| `GET`       | `/test`                   | ❌ No          | Returns `"test"` (can be used to test rate limiting) |
-| `GET`       | `/check`                  | ✅ Yes         | Shows current user's auth info                       |
-| `GET`       | `/api/data/some-resource` | ❌ No          | Public GET – No auth needed                          |
-| `POST`      | `/api/data/some-resource` | ✅ Yes         | Protected POST – Requires valid JWT                  |
+| `GET`       | `/register`               | ❌ No         | Show user registration form                          |
+| `POST`      | `/register`               | ❌ No         | Register a new user                                  |
+| `GET`       | `/quotes`                 | ❌ No         | Paginated, sorted list of quotes                     |
+| `GET`       | `/user/quotes/{id}`       | ✅ Yes        | View details of a single quote                       |
+| `POST`      | `/user/quotes`            | ✅ Yes        | Add a new quote                                      |
+| `PUT`       | `/user/quotes/{id}`       | ✅ Yes        | Update an existing quote                             |
+| `DELETE`    | `/user/quotes/{id}`       | ✅ Yes        | Delete a quote                                       |
 
-### Example Request with Basic Auth:
 
-```bash
-curl -u user1:pass1 http://localhost:8080/quotes/all
-```
 
 
 
@@ -172,7 +164,7 @@ curl -u user1:pass1 http://localhost:8080/quotes/all
 Add a new quote (requires auth):
 
 ```bash
-curl -u user1:pass1 -X POST http://localhost:8080/quotes \
+curl -u user1:pass1 -X POST http://localhost:8080/user/quotes \
 -H "Content-Type: application/json" \
 -d '{"content": "Keep pushing forward", "author": "Anonymous"}'
 ```

@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -32,8 +33,11 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final WriterRepository writerRepository;
     private final WriterService writerService;
     private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, Object> redisTemplate;
+
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -44,17 +48,15 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         Map<String, Object> attributes = authToken.getPrincipal().getAttributes();
         String email = (String) attributes.get("email");
 
-        // 1. Create writer if not exists
         Writer writer = writerRepository.findByUsername(email).orElse(null);
         if (writer == null) {
             Writer newWriter = new Writer();
             newWriter.setUsername(email);
-            newWriter.setPassword(passwordEncoder.encode("OAuth")); // dummy password
+            newWriter.setPassword(passwordEncoder().encode("OAuth"));
             newWriter.setRole("ROLE_USER");
             writerRepository.save(newWriter);
         }
 
-        // 2. Authenticate using UserDetails
         UserDetails userDetails = writerService.loadUserByUsername(email);
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(
@@ -63,19 +65,16 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                         userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(token);
 
-        // 3. Generate JWT and store in Redis
         String jwt = jwtUtil.generateToken(email);
-        redisTemplate.opsForValue().set(email, jwt, Duration.ofMinutes(30));
-        redisTemplate.opsForValue().increment("current_logged_in_users");
+        redisTemplate.opsForHash().put("active_user_tokens", email, jwt);
+        log.info("JWT generated for user [{}]: {}", email, jwt);
 
-        // 4. Set JWT as HttpOnly cookie
         Cookie cookie = new Cookie("jwt", jwt);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(30 * 60); // 30 minutes
+        cookie.setMaxAge(10 * 60); // 10 minutes
         response.addCookie(cookie);
 
-        // 5. Redirect
-        response.sendRedirect("/quotes");
+        response.sendRedirect("/quotes?token=" + jwt); // To support JS token sync
     }
 }

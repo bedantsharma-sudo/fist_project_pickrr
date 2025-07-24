@@ -37,7 +37,8 @@ public class SessionValidationService {
                 log.warn("Token expired or invalid for user '{}', removing from Redis.", userId);
                 redisTemplate.opsForHash().delete("active_user_tokens", userId);
             } else {
-                log.debug("Token valid for user '{}'", userId);
+                //log.debug("Token valid for user '{}'", userId);
+                log.info("User '{}' has been validated.", userId);
             }
         }
 

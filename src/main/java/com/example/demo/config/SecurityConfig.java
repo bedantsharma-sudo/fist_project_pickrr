@@ -1,25 +1,18 @@
 package com.example.demo.config;
 
-import com.example.demo.filter.JwtAuthenticationFilter;
-import com.example.demo.helper.CustomAuthenticationFailureHandler;
-import com.example.demo.helper.CustomBasicAuthSuccessHandler;
-import com.example.demo.helper.CustomOAuth2SuccessHandler;
-import com.example.demo.helper.JwtUtil;
+import com.example.demo.controllers.CustomLogoutHandler;
 import com.example.demo.service.WriterService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 @Configuration
@@ -27,18 +20,16 @@ import org.springframework.web.filter.HiddenHttpMethodFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final CustomLogoutHandler customLogoutHandler;  // Spring will inject it automatically
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
     private final CustomBasicAuthSuccessHandler customBasicAuthSuccessHandler;
-    private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for non-browser clients like Postman
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        return httpSecurity
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(registry -> {
-                    // Permit access to specific endpoints
                     registry.requestMatchers(
                             "/Log",
                             "/register/**",
@@ -49,9 +40,8 @@ public class SecurityConfig {
                     ).permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
                     registry.requestMatchers("/user/**").hasRole("USER");
-                    registry.anyRequest().authenticated(); // All other requests require authentication
+                    registry.anyRequest().authenticated();
                 })
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class) // Add JWT filter before the UsernamePassword filter
                 .formLogin(form -> form
                         .loginPage("/Log")
                         .successHandler(customBasicAuthSuccessHandler)
@@ -62,14 +52,19 @@ public class SecurityConfig {
                         .successHandler(customOAuth2SuccessHandler)
                         .failureHandler(customAuthenticationFailureHandler)
                 )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .addLogoutHandler(customLogoutHandler)  // Spring will inject it here
+                        .logoutSuccessUrl("/login?logout")
+                )
                 .build();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider(WriterService writerService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(writerService);
         provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(writerService);
         return provider;
     }
 
@@ -80,6 +75,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Using BCrypt for password encoding
+        return new BCryptPasswordEncoder();
     }
 }
