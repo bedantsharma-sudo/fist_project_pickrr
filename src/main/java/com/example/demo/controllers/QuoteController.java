@@ -39,7 +39,6 @@ class QuoteController {
         return "redirect:/quotes";
     }
 
-
     @GetMapping("/quotes")
     @RateLimit(limit = 30,duration = 60)
     public String getAllQuote(Model model, @RequestParam(defaultValue = "0") int page,
