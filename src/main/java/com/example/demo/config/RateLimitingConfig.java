@@ -1,7 +1,8 @@
 package com.example.demo.config;
 
 import com.example.demo.helper.RateLimit;
-import com.example.demo.helper.RateLimiterService;
+import com.nimbusds.jose.jwk.source.RateLimitReachedException;
+import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -9,9 +10,13 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
@@ -78,7 +83,7 @@ public class RateLimitingConfig{
         return joinPoint.proceed();
     }
 
-    @Around("@annotation(rateLimit)")
+//    @Around("@annotation(rateLimit)")
     public Object tokenBucket(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
         long refillPerSec = 5;
         long capacity = 50;
@@ -105,6 +110,32 @@ public class RateLimitingConfig{
         currentCount -=1;
         redisTemplate.opsForValue().set(count,String.valueOf(currentCount));
         redisTemplate.opsForValue().set(last_ts,String.valueOf(now));
+        return joinPoint.proceed();
+    }
+
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public Bucket createLimitBucket(){
+        return Bucket.builder().addLimit(limit -> limit.capacity(30).refillGreedy(30, Duration.ofMinutes(1)))
+                .build();
+    }
+    public Bucket createThrottlingsBucket(){
+        return Bucket.builder().addLimit(limit -> limit.capacity(1).refillGreedy(1, Duration.ofMillis(300)))
+                .build();
+    }
+
+    @Around("@annotation(rateLimit)")
+    public Object tokenThrottler(ProceedingJoinPoint joinPoint,RateLimit rateLimit) throws Throwable {
+        String key = request.getRemoteAddr();
+        Bucket limitBucket = buckets.computeIfAbsent(key, k -> createLimitBucket());
+        Bucket throttlerBucket = buckets.computeIfAbsent(key,k-> createThrottlingsBucket());
+
+        if(!limitBucket.tryConsume(1)){
+            throw new ResponseStatusException(TOO_MANY_REQUESTS, "Too many requests. Try again later.");
+        }
+
+        throttlerBucket.asBlocking().consume(1);
+
         return joinPoint.proceed();
     }
 

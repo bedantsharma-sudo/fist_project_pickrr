@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,10 @@ class QuoteController {
         this.quoteService = quoteService;
     }
 
+    @GetMapping("/")
+    public String redirectToHome(){
+        return "redirect:/quotes";
+    }
 
     @GetMapping("/quotes")
     @RateLimit(limit = 30,duration = 60)
@@ -101,4 +107,12 @@ class QuoteController {
         quoteService.deleteQuote(id);
         return "redirect:/quotes";
     }
+
+    @GetMapping("/quotes/random")
+    public String getRandomQuote(Model model) {
+        Quote randomQuote = quoteService.getRandomQuote();
+        model.addAttribute("quote", randomQuote);
+        return "single-quote";
+    }
+
 }
