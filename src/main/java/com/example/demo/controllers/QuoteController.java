@@ -108,4 +108,12 @@ class QuoteController {
         quoteService.deleteQuote(id);
         return "redirect:/quotes";
     }
+
+    @GetMapping("/quotes/random")
+    public String getRandomQuote(Model model) {
+        Quote randomQuote = quoteService.getRandomQuote();
+        model.addAttribute("quote", randomQuote);
+        return "single-quote";
+    }
+
 }
