@@ -1,32 +1,35 @@
 # 📚 Quotes API
 
-A full-stack Spring Boot application that offers a RESTful and web-based platform to manage inspirational quotes. Includes secure user authentication, rate limiting, pagination, OAuth login, and Redis caching.
+A full-stack Spring Boot application that offers a RESTful and web-based platform to manage inspirational quotes. Includes secure user authentication, rate limiting along with Throttling, pagination, OAuth login, Redis caching, and JWT and Docker support.
 
 ---
 
 ## 🚀 Features
 
 ✅ User registration and login (Basic Auth + Google OAuth2)  
-✅ Add, update, view, and delete quotes  
-✅ Pagination and sorting of quotes  
-✅ Rate limiting with Redis  
-✅ Caching for performance optimization  
-✅ JWT token support  
-✅ HTML-based frontend using Thymeleaf
+✅ Add, update, view, and delete quotes
+✅ Fetch a Random Quote from the Database
+✅ Index-based pagination  
+✅ Rate limiting and Throtting  
+✅ Redis caching for improved performance  
+✅ JWT token generation and validation  
+✅ HTML-based frontend using Thymeleaf  
+✅ Docker support for MySQL and Redis
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer | Tools |
-|-------|-------|
-| Language | Java 21 |
-| Backend | Spring Boot 3.5.3 |
-| Database | MySQL |
-| Cache & Rate Limiting | Redis |
-| Security | Spring Security (Basic Auth), OAuth2 (Google) |
-| Frontend | Thymeleaf Templates |
-| Build Tool | Maven |
+| Layer         | Tools                                      |
+|---------------|--------------------------------------------|
+| Language      | Java 21                                    |
+| Backend       | Spring Boot 3.5.3                          |
+| Database      | MySQL *(or Dockerized MySQL)*             |
+| Cache & Rate Limiting | Redis *(or Dockerized Redis)*     |
+| Security      | Spring Security (Basic Auth), OAuth2 (Google) |
+| Frontend      | Thymeleaf Templates                        |
+| Build Tool    | Maven                                      |
+| Containerization | Docker *(optional but recommended)*     |
 
 ---
 
@@ -43,21 +46,119 @@ cd fist_project_pickrr
 
 ### 2. 📦 Install Dependencies
 
-Ensure the following are installed:
+Ensure you have:
 
-- ✅ Java 21
-- ✅ Maven
-- ✅ MySQL
-- ✅ Redis
+- ✅ Java 21  
+- ✅ Maven  
+- ✅ Docker *(recommended)*
 
-#### ➕ Installing Redis (Ubuntu):
+---
+
+### 3. 🐳 Option 1: Dockerized MySQL & Redis Setup (Recommended)
+
+### 3. 🐳 Option 1: Dockerized MySQL & Redis Setup (Recommended)
+
+This option uses Docker to quickly set up the MySQL and Redis dependencies.
+
+#### 🔧 Step 1: Run Services Using Docker Compose
+
+Use the provided `docker-compose.yml` file:
+
+```bash
+docker compose up -d
+```
+
+This will spin up:
+
+- MySQL on port `3306`
+- Redis on port `6379`
+
+#### 📁 Sample `docker-compose.yml`
+
+```yaml
+services:
+  mysql:
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=mydatabase'
+      - 'MYSQL_PASSWORD=secret'
+      - 'MYSQL_ROOT_PASSWORD=verysecret'
+      - 'MYSQL_USER=myuser'
+    ports:
+      - '3306:3306'
+    networks:
+      - backend
+    restart: unless-stopped
+
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+```
+
+#### ⚙️ Step 2: Update `application.properties`
+
+Make sure your `src/main/resources/application.properties` looks like this (with DB name, user, and password matching your Docker config):
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/mydatabase
+spring.datasource.username=myuser
+spring.datasource.password=secret
+
+spring.redis.host=localhost
+spring.redis.port=6379
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# JWT & OAuth settings...
+jwt.secret=your_very_secret_jwt_key
+```
+
+#### ✅ Step 3: Run the Application
+
+After the containers are up, build and run your Spring Boot app:
+
+```bash
+./mvnw clean install
+./mvnw spring-boot:run
+```
+
+Your app will be available at: [http://localhost:8080](http://localhost:8080)
+
+
+
+### 4. 🗃️ Option 2: Manual MySQL & Redis Installation
+
+#### ➕ MySQL
+
+1. Install MySQL:
+   ```bash
+   sudo apt update
+   sudo apt install mysql-server
+   ```
+2. Create database:
+   ```sql
+   CREATE DATABASE quotes_db;
+   ```
+
+#### ➕ Redis
 
 ```bash
 sudo apt update
 sudo apt install redis
+sudo systemctl enable redis
+sudo systemctl start redis
 ```
 
-✅ Check if Redis is running:
+Check Redis is running:
 
 ```bash
 redis-cli ping
@@ -66,27 +167,7 @@ redis-cli ping
 
 ---
 
-### 3. 🗃️ MySQL Database Setup
-
-1. Start MySQL server
-2. Create database:
-
-```sql
-```
-
-3. Update `application.properties`:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/quotes_db
-spring.datasource.username=root
-spring.datasource.password=<your_mysql_password>
-spring.jpa.hibernate.ddl-auto=update
-jwt.secret=your_very_secret_jwt_key
-```
-
----
-
-### 4. 🧱 Build the Project
+### 5. 🧱 Build the Project
 
 ```bash
 ./mvnw clean install
@@ -96,7 +177,7 @@ mvnw.cmd clean install
 
 ---
 
-### 5. ▶️ Run the Application
+### 6. ▶️ Run the Application
 
 ```bash
 ./mvnw spring-boot:run
@@ -112,9 +193,9 @@ App will run at:
 
 > You can create new users via `/register` page
 
-| Username | Password | Role   |
-|----------|----------|--------|
-| user1    | pass1    | USER   |
+| Username | Password | Role |
+|----------|----------|------|
+| user1    | pass1    | USER |
 
 ---
 
@@ -122,49 +203,79 @@ App will run at:
 
 ### 🔑 Authentication & Registration
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/Log` | ❌ | Login form (HTML) |
-| GET | `/loginWithGoogle` | ❌ | Redirect to Google OAuth |
-| GET | `/welcome?token={token}` | ✅ (OAuth) | Welcome page with JWT token |
-| GET | `/register` | ❌ | Registration form |
-| POST | `/register` | ❌ | Register new user |
+| Method | Endpoint                    | Auth         | Description                       |
+|--------|-----------------------------|--------------|-----------------------------------|
+| GET    | `/Log`                      | ❌           | Login form (HTML)                 |
+| GET    | `/loginWithGoogle`         | ❌           | Redirect to Google OAuth          |
+| GET    | `/welcome?token={token}`   | ✅ (OAuth)   | Welcome page with JWT token       |
+| GET    | `/register`                | ❌           | Registration form                 |
+| POST   | `/register`                | ❌           | Register new user                 |
 
 ---
 
 ### 📝 Quote Management
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|-----|-------------|
-| GET | `/quotes` | ❌ | List of all quotes (paginated, sortable) |
-| GET | `/user/quotes/{id}` | ✅ | View single quote |
-| POST | `/user/quotes` | ✅ | Create a new quote |
-| PUT | `/user/quotes/{id}` | ✅ | Update existing quote |
-| DELETE | `/user/quotes/{id}` | ✅ | Delete quote |
+| Method | Endpoint                | Auth | Description                  |
+|--------|-------------------------|------|------------------------------|
+| GET    | `/quotes`              | ❌   | List all quotes (paginated) |
+| GET    | `/user/quotes/{id}`    | ✅   | View single quote           |
+| POST   | `/user/quotes`         | ✅   | Create a new quote          |
+| PUT    | `/user/quotes/{id}`    | ✅   | Update existing quote       |
+| DELETE | `/user/quotes/{id}`    | ✅   | Delete quote                |
 
 ---
 
+## 🧑‍💻 Developer Notes (by Importance)
 
-## 🧑‍💻 Developer Notes
-
-- JWTs are generated using `JwtUtil` and validated by a custom filter
-- OAuth is configured with Google via Spring Security
-- HTML templates: `src/main/resources/templates/`
-- Redis is used for both rate limiting and caching quote data
-- MySQL schema is auto-generated via JPA
-- Initial test quotes and users are optionally loaded into the DB on startup using a CommandLineRunner.
-- Passwords are securely hashed using BCryptPasswordEncoder. 
-- Quotes are paginated and sorted by ID for consistency.
+- 🔒 **Rate Limiting**:  
+  Implemented using Redis. Each user is throttled to 2 requests per millisecond.  
 
 
+- ⚙️ **Authentication**:  
+  - Basic Auth uses Spring Security with a custom `UserDetailsService`.  
+  - Google OAuth2 login is configured via Spring Security OAuth client.  
+
+- 🔑 **JWT Tokens**:  
+  - Generated with `JwtUtil`.  
+
+
+- 💾 **Redis Caching**:  
+
+    
+- 🛠️ **Database Setup (JPA + Hibernate)**:  
+  - MySQL schema is auto-created.  
+  - Entities: `User`, `Quote`
+  -  `writer` Table
+
+| Column   | Type         | Constraints         |
+|----------|--------------|---------------------|
+| username | VARCHAR(255) | UNIQUE              |
+| password | VARCHAR(255) | NOT NULL            |
+| role     | VARCHAR(20)  | DEFAULT `'USER'`    |
+
+- `quote` Table
+
+| Column  | Type         | Constraints              |
+|---------|--------------|--------------------------|
+| id      | VARCHAR(255) | PRIMARY KEY, UNIQUE      |
+| content | TEXT         | NOT NULL                 |
+| author  | VARCHAR(255) |                          |
+
+
+- 🔐 **Security Notes**:  
+  - Passwords stored using `BCryptPasswordEncoder`.  
+    
+- 🌐 **Web Frontend (Thymeleaf)**:  
+  - Pages: Login, Dashboard, All Quotes  
+  - Uses Spring MVC to pass data into templates.
+  
 ---
 
 ## 🔄 Improvements / TODOs
 
-- [ ] Switch fully to JWT instead of Basic Auth
-- [ ] Add Swagger/OpenAPI docs
-- [ ] Better error handling (404, 401, etc.)
-- [ ] Dockerize app and Redis setup
+- [ ] Replace Basic Auth with full JWT-based security
+- [ ] Swagger/OpenAPI documentation for APIs
+- [ ] Better error handling (404 pages, custom messages)
 
 ---
 
