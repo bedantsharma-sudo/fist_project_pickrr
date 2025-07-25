@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.helper.JwtUtil;
 import com.example.demo.model.Writer;
 import com.example.demo.repository.WriterRepository;
 import com.example.demo.service.JwtService;
@@ -61,15 +62,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 logger.info("User already exists: {}", writer.getUsername());
             }
 
-            // ✅ Generate token and store in Redis
-            String token = jwtService.generateToken(email); // use email as subject
+            // Generate token and store in Redis
+            String token = jwtService.generateToken(email); // use email as subject in case of CustomOAuth2
             redisTemplate.opsForHash().put("active_user_tokens", email, token).subscribe();
             redisTemplate.opsForValue().increment("current_logged_in_users").subscribe();
 
         } else {
             logger.warn("Email attribute is missing in OAuth2 response");
         }
-
         return oAuth2User;
     }
 }

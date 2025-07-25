@@ -50,12 +50,12 @@ public class JwtUtil {
         return token;
     }
 
-    // ✅ Extract username (email) from token
+    // Extract username (email) from token
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // ✅ Validate token with username check
+    // Validate token with username check
     public boolean validateToken(String token, String username) {
         final String extractedUsername = extractUsername(token);
         return (extractedUsername.equals(username) && !isTokenExpired(token));
@@ -91,7 +91,7 @@ public class JwtUtil {
         return parser.parseClaimsJws(token).getBody();
     }
 
-    // ✅ Reusable claim extractor
+    // Reusable claim extractor
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
