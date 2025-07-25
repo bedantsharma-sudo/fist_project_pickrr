@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-public class testController {
+public class TestController {
 
     @GetMapping("/test")
     @RateLimit(limit = 1,duration = 1)

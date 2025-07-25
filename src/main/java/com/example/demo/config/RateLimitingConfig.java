@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -114,25 +115,28 @@ public class RateLimitingConfig{
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    public Bucket createNewBucket(){
-        return Bucket.builder().addLimit(limit -> limit.capacity(100).refillGreedy(100, Duration.ofMinutes(1)))
-                .addLimit(limit -> limit.capacity(5).refillIntervally(5,Duration.ofMillis(100)))
+    public Bucket createLimitBucket(){
+        return Bucket.builder().addLimit(limit -> limit.capacity(30).refillGreedy(30, Duration.ofMinutes(1)))
+                .build();
+    }
+    public Bucket createThrottlingsBucket(){
+        return Bucket.builder().addLimit(limit -> limit.capacity(1).refillGreedy(1, Duration.ofMillis(300)))
                 .build();
     }
 
     @Around("@annotation(rateLimit)")
     public Object tokenThrottler(ProceedingJoinPoint joinPoint,RateLimit rateLimit) throws Throwable {
         String key = request.getRemoteAddr();
-        Bucket bucket = buckets.computeIfAbsent(key, k -> createNewBucket());
+        Bucket limitBucket = buckets.computeIfAbsent(key, k -> createLimitBucket());
+        Bucket throttlerBucket = buckets.computeIfAbsent(key,k-> createThrottlingsBucket());
 
-        System.out.println("Key: " + key+"is sending a request: " + bucket.getAvailableTokens());
-        boolean consumed = bucket.asBlocking().tryConsume(1,Duration.ofSeconds(3));
-        if(consumed){
-            return joinPoint.proceed();
-        } else {
+        if(!limitBucket.tryConsume(1)){
             throw new ResponseStatusException(TOO_MANY_REQUESTS, "Too many requests. Try again later.");
         }
 
+        throttlerBucket.asBlocking().consume(1);
+
+        return joinPoint.proceed();
     }
 
 
