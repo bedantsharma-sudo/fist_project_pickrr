@@ -225,7 +225,7 @@ App will run at:
 
 ---
 
-## 🧑‍💻 Developer Notes (by Importance)
+## 🧑‍💻 Developer Notes
 
 - 🔒 **Rate Limiting**:  
   Implemented using Redis. Each user is throttled to 2 requests per millisecond.  
