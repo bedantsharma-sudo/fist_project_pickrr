@@ -35,7 +35,7 @@ public class GlobalRateLimiting extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         long leakPerSec =1;
-        long capacity =3;
+        long capacity =1;
         String globalCount = "rate_limit:global_key:count";
         String globalTs = "rate_limit:global_key:ts";
 
@@ -67,9 +67,12 @@ public class GlobalRateLimiting extends OncePerRequestFilter {
 
         int retryAttempts = 5; // max retries
         int waitMillis = 500;  // wait 0.5s per retry i gave this time to user for enough space created in bucket
-
-        String uri = request.getRequestURI();
-        while (counter > capacity && retryAttempts-- > 0 && !uri.equals("/login")) {
+        // Even after {retryAttempts} attempt no space available in bucket it will be redirected to /logout
+        //
+        int attempt = 0;
+        while (counter > capacity && retryAttempts-- > 0  ) {
+            int exwaitMillis = (int) (waitMillis * Math.pow(2, attempt)); // exponential backoff: 0.5s, 1s, 2s, 4s, 8s
+            attempt++;
             try {
                 Thread.sleep(waitMillis);
             } catch (InterruptedException e) {
