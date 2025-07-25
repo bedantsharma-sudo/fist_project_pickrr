@@ -136,9 +136,7 @@ public class RateLimitingConfig{
 
     }
 
-
-    //@Bean -> for reusable, every HTTP request different
-    @Autowired
+    @Bean
     public HttpServletRequest request(HttpServletRequest request) {
         return request;
     }
