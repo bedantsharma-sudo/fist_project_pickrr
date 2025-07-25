@@ -35,7 +35,7 @@ public class GlobalRateLimiting extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         long leakPerSec =1;
-        long capacity =1;
+        long capacity =2;
         String globalCount = "rate_limit:global_key:count";
         String globalTs = "rate_limit:global_key:ts";
 
@@ -73,6 +73,7 @@ public class GlobalRateLimiting extends OncePerRequestFilter {
         while (counter > capacity && retryAttempts-- > 0  ) {
             int exwaitMillis = (int) (waitMillis * Math.pow(2, attempt)); // exponential backoff: 0.5s, 1s, 2s, 4s, 8s
             attempt++;
+            log.warn("Bucket full. Retry attempt {}. Waiting {}ms before next try. Attempts left: {}", attempt, exwaitMillis, retryAttempts);
             try {
                 Thread.sleep(waitMillis);
             } catch (InterruptedException e) {
@@ -88,6 +89,7 @@ public class GlobalRateLimiting extends OncePerRequestFilter {
         }
 
         if (counter > capacity) {
+            log.error("Rate limit exceeded after {} attempts. Logging out user.", attempt);
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.getWriter().write("Too many requests. Please wait and try again shortly.");
             return;
