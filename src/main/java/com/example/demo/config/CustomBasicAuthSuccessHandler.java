@@ -40,7 +40,7 @@ public class CustomBasicAuthSuccessHandler implements AuthenticationSuccessHandl
         Cookie cookie = new Cookie("jwt", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(3 * 60 + 30); // 3 minutes 30 seconds
+        cookie.setMaxAge(50); // 50 Seconds // lower than token expire always - garbage token request otherwise
         response.addCookie(cookie);
 
         response.sendRedirect("/quotes?token=" + token);

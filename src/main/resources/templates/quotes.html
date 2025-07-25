@@ -161,6 +161,151 @@
         </div>
     </div>
 </div>
+<!--<script>-->
+<!--    function getToken() {-->
+<!--        return localStorage.getItem("token");-->
+<!--    }-->
+
+<!--    function isJwtExpired(token) {-->
+<!--        if (!token) return true;-->
+<!--        try {-->
+<!--            const payload = JSON.parse(atob(token.split('.')[1]));-->
+<!--            const now = Math.floor(Date.now() / 1000);-->
+<!--            return now >= payload.exp;-->
+<!--        } catch (e) {-->
+<!--            console.error("JWT decode error", e);-->
+<!--            return true;-->
+<!--        }-->
+<!--    }-->
+
+<!--    function checkSession() {-->
+<!--        const token = getToken();-->
+<!--        if (!token || isJwtExpired(token)) {-->
+<!--            alert("Session expired or invalid. Logging out...");-->
+<!--            location.href = "/logout";-->
+<!--            return;-->
+<!--        }-->
+
+<!--        fetch("/session/validate", {-->
+<!--            headers: { "Authorization": "Bearer " + token }-->
+<!--        }).then(res => {-->
+<!--            if (!res.ok) {-->
+<!--                alert("Session invalid. Logging out...");-->
+<!--                location.href = "/logout";-->
+<!--            }-->
+<!--        }).catch(() => {-->
+<!--            alert("Session check failed. Logging out...");-->
+<!--            location.href = "/logout";-->
+<!--        });-->
+<!--    }-->
+
+<!--    // 🔄 Refresh token if not expired-->
+<!--    function refreshToken() {-->
+<!--        const token = getToken();-->
+<!--        if (!token || isJwtExpired(token)) return;-->
+
+<!--        fetch("/session/refresh", {-->
+<!--            method: "POST",-->
+<!--            headers: { "Authorization": "Bearer " + token }-->
+<!--        }).then(res => res.text())-->
+<!--            .then(newToken => {-->
+<!--                if (newToken && !isJwtExpired(newToken)) {-->
+<!--                    localStorage.setItem("token", newToken);-->
+<!--                    console.log("Token refreshed");-->
+<!--                }-->
+<!--            }).catch(err => {-->
+<!--            console.error("Token refresh failed", err);-->
+<!--        });-->
+<!--    }-->
+
+<!--    window.addEventListener("load", () => {-->
+<!--        const params = new URLSearchParams(window.location.search);-->
+<!--        const token = params.get("token");-->
+<!--        if (token) {-->
+<!--            localStorage.setItem("token", token);-->
+<!--            window.history.replaceState({}, document.title, "/quotes");-->
+<!--        }-->
+
+<!--        checkSession();-->
+<!--        setInterval(checkSession, 30000);    // Validate session every 30 sec-->
+<!--        setInterval(refreshToken, 60000);    // Refresh token every 1 min-->
+<!--    });-->
+<!--</script>-->
+
+<!--<script>-->
+<!--    function getToken() {-->
+<!--        return localStorage.getItem("token");-->
+<!--    }-->
+
+<!--    function isJwtExpired(token) {-->
+<!--        if (!token) return true;-->
+<!--        try {-->
+<!--            const payload = JSON.parse(atob(token.split('.')[1]));-->
+<!--            const now = Math.floor(Date.now() / 1000);-->
+<!--            return now >= payload.exp;-->
+<!--        } catch (e) {-->
+<!--            console.error("JWT decode error", e);-->
+<!--            return true;-->
+<!--        }-->
+<!--    }-->
+
+<!--    function checkSession() {-->
+<!--        const token = getToken();-->
+<!--        if (!token || isJwtExpired(token)) {-->
+<!--            alert("Session expired or invalid. Logging out...");-->
+<!--            location.href = "/logout";-->
+<!--            return;-->
+<!--        }-->
+
+<!--        fetch("/session/validate", {-->
+<!--            headers: { "Authorization": "Bearer " + token }-->
+<!--        }).then(res => {-->
+<!--            if (!res.ok) {-->
+<!--                alert("Session invalid. Logging out...");-->
+<!--                location.href = "/logout";-->
+<!--            }-->
+<!--        }).catch(() => {-->
+<!--            alert("Session check failed. Logging out...");-->
+<!--            location.href = "/logout";-->
+<!--        });-->
+<!--    }-->
+
+<!--    function refreshToken() {-->
+<!--        const token = getToken();-->
+<!--        if (!token || isJwtExpired(token)) return;-->
+
+<!--        fetch("/session/refresh", {-->
+<!--            method: "POST",-->
+<!--            headers: { "Authorization": "Bearer " + token }-->
+<!--        }).then(res => {-->
+<!--            if (!res.ok) throw new Error("Refresh failed");-->
+<!--            return res.json(); // Expecting a JSON object { token: "..." }-->
+<!--        }).then(data => {-->
+<!--            if (data.token && !isJwtExpired(data.token)) {-->
+<!--                localStorage.setItem("token", data.token);-->
+<!--                console.log("✅ Token refreshed");-->
+<!--            }-->
+<!--        }).catch(err => {-->
+<!--            console.error("Token refresh failed", err);-->
+<!--        });-->
+<!--    }-->
+
+<!--    window.addEventListener("load", () => {-->
+<!--        const params = new URLSearchParams(window.location.search);-->
+<!--        const token = params.get("token");-->
+<!--        if (token) {-->
+<!--            localStorage.setItem("token", token);-->
+<!--            window.history.replaceState({}, document.title, "/quotes");-->
+<!--        }-->
+
+<!--        checkSession();                      // Run on load-->
+<!--        setInterval(checkSession, 30000);    // Validate session every 30 sec-->
+<!--        setInterval(refreshToken, 60000);    // Refresh token every 1 min-->
+<!--    });-->
+<!--</script>-->
+
+<!--//working code-->
+
 <script>
     function getToken() {
         return localStorage.getItem("token");
@@ -189,32 +334,16 @@
         fetch("/session/validate", {
             headers: { "Authorization": "Bearer " + token }
         }).then(res => {
-            if (!res.ok) {
-                alert("Session invalid. Logging out...");
-                location.href = "/logout";
+            if (!res.ok) throw new Error("Session not active or token expired");
+            return res.json();  // { token: "..." }
+        }).then(data => {
+            if (data.token && !isJwtExpired(data.token)) {
+                localStorage.setItem("token", data.token);
+                console.log("✅ Token refreshed by activity check");
             }
         }).catch(() => {
-            alert("Session check failed. Logging out...");
+            alert("Session invalid. Logging out...");
             location.href = "/logout";
-        });
-    }
-
-    // 🔄 Refresh token if not expired
-    function refreshToken() {
-        const token = getToken();
-        if (!token || isJwtExpired(token)) return;
-
-        fetch("/session/refresh", {
-            method: "POST",
-            headers: { "Authorization": "Bearer " + token }
-        }).then(res => res.text())
-            .then(newToken => {
-                if (newToken && !isJwtExpired(newToken)) {
-                    localStorage.setItem("token", newToken);
-                    console.log("Token refreshed");
-                }
-            }).catch(err => {
-            console.error("Token refresh failed", err);
         });
     }
 
@@ -223,12 +352,15 @@
         const token = params.get("token");
         if (token) {
             localStorage.setItem("token", token);
-            window.history.replaceState({}, document.title, "/quotes");
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        checkSession();
-        setInterval(checkSession, 30000);    // Validate session every 30 sec
-        setInterval(refreshToken, 60000);    // Refresh token every 1 min
+         const path = window.location.pathname;
+        // ✅ Run check only if current page starts with /quotes
+        if (path.includes("/quotes")) {
+            checkSession();                         // Check once on page load
+            setInterval(checkSession, 60000);       // Then check every 1 minute
+        }
     });
 </script>
 

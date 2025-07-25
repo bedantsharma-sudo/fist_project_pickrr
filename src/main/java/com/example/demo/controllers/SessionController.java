@@ -22,75 +22,86 @@ public class SessionController {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
-    /**
-     * Endpoint to validate whether a token is valid and still active in Redis.
-     */
-    @GetMapping("/validate")
-    public ResponseEntity<?> validateSession(@RequestHeader("Authorization") String authHeader) {
-        try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return ResponseEntity.status(401).body("Missing or invalid Authorization header");
-            }
-
-            String token = authHeader.substring(7); // Remove "Bearer " prefix
-            String username = jwtUtil.extractUsername(token);
-
-            if (!jwtUtil.validateToken(token, username)) {
-                return ResponseEntity.status(401).body("Token is invalid or expired");
-            }
-
-            // Check Redis for active session
-            Object storedToken = redisTemplate.opsForHash().get("active_user_tokens", username);
-            if (storedToken == null || !storedToken.equals(token)) {
-                logger.info("Token not found in Redis or doesn't match for user: {}", username);
-                return ResponseEntity.status(401).body("Session not active");
-            }
-
-            return ResponseEntity.ok("Session is active");
-        } catch (Exception e) {
-            logger.error("Session validation error: ", e);
-            return ResponseEntity.status(401).body("Error validating session");
+@GetMapping("/validate")
+public ResponseEntity<?> validateSession(@RequestHeader("Authorization") String authHeader,
+                                         HttpServletResponse response) {
+    try {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Missing or invalid Authorization header");
         }
-    }
 
-    /**
-     * Endpoint to refresh a token if it's still valid.
-     * Sets new token in Redis and updates HttpOnly cookie.
-     */
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refreshSession(@RequestHeader("Authorization") String authHeader,
-                                            HttpServletResponse response) {
-        try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return ResponseEntity.status(401).body("Missing or invalid Authorization header");
-            }
+        String token = authHeader.substring(7);
+        String username = jwtUtil.extractUsername(token);
 
-            String oldToken = authHeader.substring(7);
-            String username = jwtUtil.extractUsername(oldToken);
-
-            if (!jwtUtil.validateToken(oldToken, username)) {
-                return ResponseEntity.status(401).body("Old token is invalid or expired");
-            }
-
-            // Generate new token
-            String newToken = jwtUtil.generateToken(username);
-
-            // Update Redis with new token
-            redisTemplate.opsForHash().put("active_user_tokens", username, newToken);
-            logger.info("Token refreshed and updated in Redis for user: {}", username);
-
-            // Set HttpOnly cookie with new token
-            Cookie cookie = new Cookie("jwt", newToken);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(4 * 60); // 4 minutes
-            response.addCookie(cookie);
-
-            // Return token in response body as well (for JS to update localStorage)
-            return ResponseEntity.ok(Map.of("token", newToken));
-        } catch (Exception e) {
-            logger.error("Token refresh error: ", e);
-            return ResponseEntity.status(401).body("Error refreshing token");
+        if (!jwtUtil.validateToken(token, username)) {
+            return ResponseEntity.status(401).body("Token is invalid or expired");
         }
+
+        // Check Redis for active session
+        Object storedToken = redisTemplate.opsForHash().get("active_user_tokens", username);
+        if (storedToken == null || !storedToken.equals(token)) {
+            logger.info("Token not found in Redis or doesn't match for user: {}", username);
+            return ResponseEntity.status(401).body("Session not active");
+        }
+
+        // If all checks pass, refresh token (only for active user)
+        String newToken = jwtUtil.generateToken(username);
+        redisTemplate.opsForHash().put("active_user_tokens", username, newToken);
+        logger.info("Active session validated — token refreshed for user: {}", username);
+        logger.info("New Token: {}", newToken);
+
+        // Set HttpOnly cookie
+        Cookie cookie = new Cookie("jwt", newToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(55); // e.g.,  50 sec
+        response.addCookie(cookie);
+
+        // Return refreshed token to update localStorage
+        return ResponseEntity.ok(Map.of("token", newToken));
+    } catch (Exception e) {
+        logger.error("Session validation error: ", e);
+        return ResponseEntity.status(401).body("Error validating session");
     }
+}
+
+
+//@PostMapping("/refresh")
+//public ResponseEntity<?> refreshSession(@RequestHeader("Authorization") String authHeader,
+//                                        HttpServletResponse response) {
+//    try {
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(401).body("Missing or invalid Authorization header");
+//        }
+//
+//        String oldToken = authHeader.substring(7);
+//        String username = jwtUtil.extractUsername(oldToken);
+//
+//        if (!jwtUtil.validateToken(oldToken, username)) {
+//            return ResponseEntity.status(401).body("Old token is invalid or expired");
+//        }
+//
+//        // Generate new token
+//        String newToken = jwtUtil.generateToken(username);
+//
+//        // Update Redis with new token
+//        redisTemplate.opsForHash().put("active_user_tokens", username, newToken);
+//        logger.info("Token refreshed for user: {}", username);
+//        logger.info("New Token: {}", newToken);
+//
+//        // Set HttpOnly cookie
+//        Cookie cookie = new Cookie("jwt", newToken);
+//        cookie.setHttpOnly(true);
+//        cookie.setPath("/");
+//        cookie.setMaxAge(55); //  55 sec
+//        response.addCookie(cookie);
+//
+//        // Return new token in JSON (for JS to update localStorage)
+//        return ResponseEntity.ok(Map.of("token", newToken));
+//    } catch (Exception e) {
+//        logger.error("Token refresh error: ", e);
+//        return ResponseEntity.status(401).body("Error refreshing token");
+//    }
+//}
+
 }

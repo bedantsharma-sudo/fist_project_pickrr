@@ -38,10 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 response.getWriter().write("Token expired. Please log in again.");
                 return;
             }
-
-            // Optional: Set authentication context here if you want Spring Security to treat this as authenticated
         }
-
         filterChain.doFilter(request, response);
     }
 }

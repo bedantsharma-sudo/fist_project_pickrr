@@ -30,7 +30,7 @@ public class RegistrationController {
         return "register";
     }
 
-    @PostMapping
+  /*  @PostMapping
     @RateLimit(limit = 3,duration = 60)
     public String registerUser(@Valid @ModelAttribute Writer writer, BindingResult result, Model model){
         if (writerRepository.findByUsername(writer.getUsername()).isPresent()){
@@ -42,5 +42,38 @@ public class RegistrationController {
         writerRepository.save(writer);
         return "redirect:/Log";
     }
+  */
+  @PostMapping
+  @RateLimit(limit = 3, duration = 60)
+  public String registerUser(@ModelAttribute Writer writer, BindingResult result, Model model) {
 
+      // Manual validation for username length - valid not working idk why
+      String username = writer.getUsername();
+      if (username == null || username.length() < 3 || username.length() > 20) {
+          result.rejectValue("username", "error.username", "Username must be between 3 and 20 characters");
+      }
+
+      // Manual validation for password length
+      String password = writer.getPassword();
+      if (password == null || password.length() < 3) {
+          result.rejectValue("password", "error.password", "Password must be at least 3 characters long");
+      }
+
+      // Check if username is already taken
+      if (writerRepository.findByUsername(username).isPresent()) {
+          result.rejectValue("username", "error.username", "Username already taken");
+      }
+
+      // If any errors found, return to registration page
+      if (result.hasErrors()) {
+          return "register";
+      }
+
+      // Save new user - all valid
+      writer.setPassword(passwordEncoder.encode(password));
+      writer.setRole("ROLE_USER");
+      writerRepository.save(writer);
+
+      return "redirect:/Log";
+  }
 }

@@ -59,7 +59,6 @@ class QuoteController {
         model.addAttribute("sortField", sortBy);
         model.addAttribute("sortDirection", sortDir);
 
-
         return "quotes";
     }
 
@@ -69,6 +68,7 @@ class QuoteController {
         Optional<Quote> quoteOptional = quoteService.getQuoteById(id);
         if (quoteOptional.isPresent()) {
             model.addAttribute("quote", quoteOptional.get());
+            logger.info("Fetching quotes id {} ", id);
             return "single-quote";
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quote not found with ID: " + id);
@@ -81,12 +81,11 @@ class QuoteController {
 
         Quote newQuote = quoteService.saveQuote(quote);
 
-
         if (newQuote.getId() == null) {
             System.err.println("ERROR: New Quote ID is NULL after saving! Cannot redirect to detail page.");
             return "redirect:/quotes?error=saveFailed";
         }
-
+        logger.info("Saving quote id {} ", quote.getId());
         return "redirect:/user/quotes/" + newQuote.getId();
     }
 
@@ -94,6 +93,7 @@ class QuoteController {
     @PutMapping("/user/quotes/{id}")
     public String updateQuote(@PathVariable long id, @ModelAttribute Quote quote){
         Quote updatedQuote = quoteService.updateQuote(id, quote);
+        logger.info("Updating quote id {} ", id);
         return "redirect:/user/quotes/" + updatedQuote.getId();
     }
 
@@ -101,6 +101,7 @@ class QuoteController {
     @DeleteMapping("/user/quotes/{id}")
     public String deleteQuote(@PathVariable long id){
         quoteService.deleteQuote(id);
+        logger.info("Deleting quote id {} ", id);
         return "redirect:/quotes";
     }
 }

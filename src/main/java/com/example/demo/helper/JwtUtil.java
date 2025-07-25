@@ -37,7 +37,7 @@ public class JwtUtil {
 
     public String generateToken(String email) {
         Instant now = Instant.now();
-        Instant expiry = now.plus(5, ChronoUnit.MINUTES);
+        Instant expiry = now.plus(1, ChronoUnit.MINUTES);
 
         String token = Jwts.builder()
                 .setSubject(email)
